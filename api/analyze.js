@@ -125,6 +125,16 @@ Reglas estrictas de razonamiento para Chile:
     });
   } catch (error) {
     console.error('Error procesando en Gemini Serverless:', error);
+    
+    if (error.message.includes('NOT_FOUND') || error.message.includes('404')) {
+      return res.status(200).json({
+        status: 'error',
+        message: 'La API Key introducida en Vercel requiere habilitar el servicio de Gemini o ser una clave de Google AI Studio.',
+        solution: 'Obtén tu API Key gratuita en https://aistudio.google.com/app/apikey (Generative Language API) e ingrésala en Vercel.',
+        needApiKey: true
+      });
+    }
+
     return res.status(500).json({ 
       error: 'Error procesando respuesta con Gemini', 
       details: error.message 
