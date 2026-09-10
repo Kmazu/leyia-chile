@@ -1,7 +1,7 @@
 /**
  * Base de Datos Legal Chilena Enriquecida y Motor de Análisis Inteligente
- * Cubre Código Penal (Incendio, Homicidios, Robo en Lugar Habitado, Atropello), Ley Emilia, Ley Cholito,
- * Código Procesal Penal (Apercibimiento Art. 26), Código del Trabajo, Ley Devuélveme mi Casa, SERNAC y Familia.
+ * Cubre Código Penal (Incendio, Homicidios, Lesiones entre particulares, Hurto Menor), Ley Emilia, Ley Cholito,
+ * Código Procesal Penal (Acuerdos Reparatorios), Código del Trabajo, Ley Devuélveme mi Casa, SERNAC y Familia.
  */
 
 import { legalClassifierEngine } from '../services/legalClassifierEngine';
@@ -17,12 +17,20 @@ export const LEGAL_CATEGORIES = [
 
 export const PRESET_SCENARIOS = [
   {
-    id: 'robo_lugar_habitado',
+    id: 'agresion_vecino',
     category: 'penal',
-    title: 'Robo en Casa / Detención y Apercibimiento',
-    prompt: 'Ayer asalté la casa de mi vecina y no había nadie pero me llevaron a la comisaría y me soltaron en la mañana, ¿qué me puede pasar?',
-    tag: 'Art. 440 CP & Art. 26 CPP',
+    title: 'Agresión Física y Lesiones a Vecino',
+    prompt: 'Mi tío fue y le pegó al vecino, ¿qué le pasará si lo denuncian?',
+    tag: 'Art. 399 & 494 N° 5 CP',
     badge: 'Penal'
+  },
+  {
+    id: 'hurto_escaso_valor',
+    category: 'penal',
+    title: 'Hurto de Especie de Escaso Valor',
+    prompt: 'Ayer robé una manzana de un negocio y maté un pajarito en el patio, ¿me puede pasar algo?',
+    tag: 'Art. 494 N° 19 CP',
+    badge: 'Falta Menor'
   },
   {
     id: 'incendio_muerte',
@@ -39,14 +47,6 @@ export const PRESET_SCENARIOS = [
     prompt: 'Ayer atropellé a un perrito en la mitad de la calle y me fui, ¿me puede pasar algo?',
     tag: 'Ley Cholito N° 21.020',
     badge: 'Policía Local'
-  },
-  {
-    id: 'atropello_fuga_humano',
-    category: 'penal',
-    title: 'Atropello a Peatón y Fuga',
-    prompt: 'Atropellé a una persona en el paso de cebra, me asusté y me di a la fuga.',
-    tag: 'Ley Emilia & Tránsito',
-    badge: 'Crítico'
   },
   {
     id: 'despido_injustificado',
@@ -67,41 +67,70 @@ export const PRESET_SCENARIOS = [
 ];
 
 export const KNOWLEDGE_BASE = {
-  robo_lugar_habitado: {
-    title: "Delito de Robo en Lugar Habitado y Procedimiento de Detención",
+  agresion_vecino: {
+    title: "Delito o Falta de Lesiones Corporales entre Particulares",
     category: "penal",
-    subjectDetected: "Inmueble / Propiedad Ajena (Robo Penal)",
-    riskLevel: "ALTO RIESGO PENAL (5 A 10 AÑOS)",
-    riskColor: "#ef4444",
+    subjectDetected: "Persona / Vecino (Lesiones)",
+    riskLevel: "LESIONES Y PROCEDIMIENTO PENAL",
+    riskColor: "#f97316",
     codesReferenced: [
-      "Código Penal Chileno (Art. 440 - Robo en Lugar Habitado)",
-      "Código Procesal Penal (Art. 26 - Apercibimiento y Fijación de Domicilio)",
-      "Código Procesal Penal (Art. 155 - Medidas Cautelares)"
+      "Código Penal Chileno (Art. 399 - Lesiones Menos Graves)",
+      "Código Penal Chileno (Art. 494 N° 5 - Lesiones Leves)",
+      "Código Procesal Penal (Art. 241 - Acuerdos Reparatorios)"
     ],
-    summary: "Ingresar a una vivienda ajena sin autorización utilizando fuerza o intromisión para sustraer especies constituye el delito de Robo en Lugar Habitado, sin importar que la propiedad estuviese vacía en ese instante.",
+    summary: "Agredir físicamente a un vecino constituye una falta o delito de Lesiones. La pena depende de la gravedad médica demostrada en el dato de atención de urgencia (SAPU/Hospital/SML). No arriesga presidio efectivo si es la primera vez y no hay secuelas graves.",
     legalDetails: [
       {
-        article: "Art. 440 - Código Penal de Chile",
-        description: "El Robo en Lugar Habitado o sus dependencias se sanciona con la pena de PRESIDIO MAYOR EN SU GRADO MÍNIMO (5 años y 1 día a 10 años de cárcel). El hecho de no haber moradores en ese instante no atenúa la calificación del inmueble."
+        article: "Art. 494 N° 5 - Lesiones Leves",
+        description: "Si los golpes causaron solo hematomas o contusiones menores (recuperación menor a 7 días), se sanciona únicamente con multa de 1 a 4 UTM sin cárcel."
       },
       {
-        article: "Art. 26 CPP - ¿Por qué la salida en libertad provisional en la mañana?",
-        description: "Haber sido soltado tras la detención NO significa absolución ni cierre del caso. Ocurre al quedar apercibido bajo el Art. 26 del CPP (fijación obligatoria de domicilio para citaciones de la Fiscalía)."
+        article: "Art. 399 - Lesiones Menos Graves",
+        description: "Si requirieron puntos o incapacidad de 8 a 30 días, la pena es presidio de 61 a 540 días, cumpliéndose en libertad (remisión condicional) si no registra antecedentes penales."
       },
       {
-        article: "Art. 155 CPP - Medidas Cautelares en Libertad",
-        description: "El tribunal puede imponer medidas cautelares inmediatas: prohibición absoluta de acercarse a la víctima/vecina y su domicilio, firma periódica y arraigo nacional."
+        article: "Art. 241 CPP - Acuerdo Reparatorio",
+        description: "La ley chilena permite cerrar la causa penal mediante un Acuerdo Reparatorio (pago de gastos médicos o disculpa) sin ir a juicio ni quedar con antecedentes."
       }
     ],
     actionSteps: [
-      "Designar de inmediato un Abogado Defensor Penal (Defensoría Penal Pública o privado).",
-      "Respetar de forma estricta la prohibición de acercarse a la propiedad o a la vecina para evitar arresto por desacato (Art. 240 CPC).",
-      "Mantener el domicilio actualizado ante el Juzgado de Garantía para acudir a la audiencia de formalización cuando la Fiscalía cite."
+      "Esperar citación de la Fiscalía o solicitar asistencia de la Defensoría Penal Pública.",
+      "Respetar de forma estricta cualquier prohibición de acercamiento (Art. 155 CPP).",
+      "Evaluar proponer un Acuerdo Reparatorio para pagar gastos médicos y sobreseer la causa."
     ],
     documentsAvailable: [
-      { id: 'patrocinio_penal_robo', title: 'Modelo de Patrocinio y Poder Defensor Penal', format: 'DOCX / PDF' }
+      { id: 'minuta_acuerdo_reparatorio', title: 'Modelo de Propuesta de Acuerdo Reparatorio Lesiones', format: 'DOCX / PDF' }
     ],
-    proStrategy: "En juicios por Art. 440 CP, la defensa debe examinar el acta de detención por posibles vicios en la cadena de custodia o control de identidad, e intentar irreprochable conducta anterior (Art. 11 N° 6 CP) para mitigar la pena."
+    proStrategy: "Si no registra condenas previas, solicitar en la primera audiencia un Acuerdo Reparatorio o Suspensión Condicional con prohibición de acercamiento para no generar prontuario."
+  },
+
+  hurto_escaso_valor: {
+    title: "Falta de Hurto de Especie de Escaso Valor",
+    category: "penal",
+    subjectDetected: "Fruta / Especie de Escaso Valor",
+    riskLevel: "BAJO / FALTA MENOR",
+    riskColor: "#34d399",
+    codesReferenced: [
+      "Código Penal Chileno (Art. 494 N° 19 - Hurto de Escaso Valor)",
+      "Ley N° 19.473 (Ley de Caza y Fauna Silvestre)"
+    ],
+    summary: "Sustraer un objeto o fruta de valor ínfimo (como una manzana) sin violencia ni fuerza constituye una falta menor. No arriesga cárcel ni antecedentes graves. La muerte de un ave común no configura delito penal a menos que sea especie silvestre protegida.",
+    legalDetails: [
+      {
+        article: "Art. 494 N° 19 - Código Penal",
+        description: "El hurto de cosas cuyo valor no exceda de 1 UTM se sanciona con multa de 1 a 4 UTM en el Juzgado de Garantía o de Policía Local, sin pena privativa de libertad."
+      },
+      {
+        article: "Fauna y Maltrato Animal",
+        description: "La muerte accidental de un ave silvestre común no constituye delito penal. Solo las especies silvestres protegidas (Ley de Caza) o la crueldad intencional hacia mascotas ajenas (Art. 291 bis CP) conllevan sanciones."
+      }
+    ],
+    actionSteps: [
+      "En caso de citación, abonar la multa fijada por el juez.",
+      "No requiere designación de defensor penal privado."
+    ],
+    documentsAvailable: [],
+    proStrategy: "Solicitar el pago voluntario anticipado de la multa para obtener rebaja del 25% de la sanción."
   },
 
   greeting_welcome: {
@@ -118,7 +147,7 @@ export const KNOWLEDGE_BASE = {
     legalDetails: [
       {
         article: "Derecho Penal y Tránsito",
-        description: "Consultas sobre accidentes de tránsito, Ley Emilia, Ley Cholito (mascotas), robo en lugar habitado, delitos y procedimientos penales."
+        description: "Consultas sobre accidentes de tránsito, Ley Emilia, Ley Cholito (mascotas), agresiones, hurtos y delitos en general."
       },
       {
         article: "Derecho del Trabajo",
@@ -135,7 +164,7 @@ export const KNOWLEDGE_BASE = {
       "Descarga minutas o exporta el informe dossier para tu abogado."
     ],
     documentsAvailable: [],
-    proStrategy: "Para obtener el diagnóstico más exacto, incluye detalles de los sujetos involucrados (personas, animales, propiedades) y si hubo avisos o documentos firmados."
+    proStrategy: "Para obtener el diagnóstico más exacto, incluye detalles de los sujetos involucrados y si hubo avisos o documentos firmados."
   },
 
   greeting_thanks: {
@@ -181,25 +210,14 @@ export const KNOWLEDGE_BASE = {
       {
         article: "Presidio Perpetuo Calificado (Ley N° 19.734)",
         description: "Implica privación de libertad de por vida, exigiendo un cumplimiento mínimo de 40 AÑOS DE CÁRCEL EFECTIVA antes de poder optar a cualquier beneficio intrapenitenciario."
-      },
-      {
-        article: "Art. 391 N° 1 - Homicidio Calificado (Fuego / Alevosía)",
-        description: "El uso del fuego como medio ejecutor actúa como circunstancia calificadora del homicidio, impidiendo cualquier rebaja de pena."
-      },
-      {
-        article: "Art. 140 CPP - Medida Cautelar Obligatoria",
-        description: "Por la gravedad del delito y la fuga, el Juez de Garantía decretará de forma ineludible la Prisión Preventiva por peligro para la sociedad y riesgo de fuga."
       }
     ],
     actionSteps: [
       "Ponerse a disposición de Carabineros o la Fiscalía de forma inmediata asistido por un Abogado Defensor Penal.",
-      "No destruir ni alterar elementos en el sitio del suceso.",
       "Designar defensa técnica penal especializada en delitos graves."
     ],
-    documentsAvailable: [
-      { id: 'patrocinio_penal_grave', title: 'Modelo de Patrocinio Penal de Urgencia', format: 'DOCX / PDF' }
-    ],
-    proStrategy: "En delitos de esta envergadura la prisión preventiva es inevitable. La estrategia jurídica debe centrarse en acreditar la colaboración sustancial temprana (Art. 11 N° 9 CP) mediante la entrega voluntaria inmediata."
+    documentsAvailable: [],
+    proStrategy: "Acreditar la colaboración sustancial temprana (Art. 11 N° 9 CP) mediante la entrega voluntaria inmediata."
   },
 
   atropello_mascota: {
@@ -213,30 +231,18 @@ export const KNOWLEDGE_BASE = {
       "Código Penal Chileno (Art. 291 bis - Maltrato Animal)",
       "Ley N° 18.287 (Procedimiento ante Juzgados de Policía Local)"
     ],
-    summary: "IMPORTANTE: El atropello fortuito de una mascota NO constituye delito de fuga de la Ley Emilia ni arriesga presidio por homicidio. La Ley Emilia se reserva exclusivamente para lesiones o muerte de SERES HUMANOS.",
+    summary: "IMPORTANTE: El atropello fortuito de una mascota NO constituye delito de fuga de la Ley Emilia ni arriesga presidio por homicidio.",
     legalDetails: [
       {
         article: "Inaplicabilidad del Delito de Fuga de Ley Emilia",
-        description: "Los Arts. 176 y 195 de la Ley de Tránsito y las penas de cárcel de 3 a 5 años por fuga NO se aplican a animales. Se reservan strictly para víctimas humanas."
-      },
-      {
-        article: "Art. 291 bis - Maltrato o Crueldad Animal",
-        description: "Solo se configura delito penal de maltrato si existió INTENCIONALIDAD (dolo) o crueldad deliberada de atropellar al animal. Si fue un accidente fortuito, no hay delito penal."
-      },
-      {
-        article: "Ley N° 21.020 y Responsabilidad Civil (JPL)",
-        description: "Si la mascota tenía dueño y el conductor actuó con imprudencia, el dueño puede demandar en el Juzgado de Policía Local la indemnización de daños y gastos veterinarios."
+        description: "Los Arts. 176 y 195 de la Ley de Tránsito y las penas de cárcel de 3 a 5 años por fuga NO se aplican a animales. Se reservan estrictamente para víctimas humanas."
       }
     ],
     actionSteps: [
-      "Dar aviso al dueño del animal si es identificable o acudir a una unidad policial a dejar constancia del siniestro vial.",
-      "Recopilar fotografías del estado de la calzada y señalización.",
-      "En caso de reclamo del dueño, gestionar la declaración ante el Juzgado de Policía Local de la comuna."
+      "Dar aviso al dueño del animal si es identificable o acudir a una unidad policial a dejar constancia del siniestro vial."
     ],
-    documentsAvailable: [
-      { id: 'constancia_jpl_mascota', title: 'Minuta de Declaración Accidente con Mascota JPL', format: 'DOCX / PDF' }
-    ],
-    proStrategy: "En accidentes viales con animales de compañía en la vía pública, la defensa en Policía Local se basa en la responsabilidad del tenedor del animal por falta de cuidado al mantener la mascota suelta en la calzada (Art. 12 Ley 21.020)."
+    documentsAvailable: [],
+    proStrategy: "En accidentes viales con animales de compañía en la vía pública, la defensa en Policía Local se basa en la falta de cuidado del tenedor (Art. 12 Ley 21.020)."
   },
 
   atropello_fuga_humano: {
@@ -250,30 +256,18 @@ export const KNOWLEDGE_BASE = {
       "Ley Emilia N° 20.770",
       "Código Penal Chileno (Art. 490, 492 y Art. 11 N° 9)"
     ],
-    summary: "Darse a la fuga tras atropellar a un ser humano en Chile constituye un delito autónomo sancionado con cárcel e inhabilitación perpetua de licencia, independientemente de la culpa inicial.",
+    summary: "Darse a la fuga tras atropellar a un ser humano en Chile constituye un delito autónomo sancionado con cárcel e inhabilitación perpetua de licencia.",
     legalDetails: [
       {
         article: "Art. 176 - Ley N° 18.290",
         description: "Obliga a detenerse, prestar ayuda a la víctima humana y dar cuenta a Carabineros."
-      },
-      {
-        article: "Art. 195 - Delito de Fuga y Omisión de Socorro",
-        description: "Penas de presidio menor en su grado máximo (3 años y 1 día a 5 años) e INHABILITACIÓN PERPETUA para conducir."
-      },
-      {
-        article: "Ley Emilia (Ley N° 20.770)",
-        description: "Si había alcohol/drogas y fuga en lesiones graves/muerte, la pena es presidio mayor con CÁRCEL EFECTIVA OBLIGATORIA de 1 año."
       }
     ],
     actionSteps: [
-      "Presentarse voluntariamente ante Carabineros o Fiscalía a la brevedad.",
-      "Contactar inmediatamente un abogado defensor penal.",
-      "No alterar el vehículo."
+      "Presentarse voluntariamente ante Carabineros o Fiscalía a la brevedad."
     ],
-    documentsAvailable: [
-      { id: 'minuta_defensa_fuga', title: 'Minuta de Presentación Voluntaria', format: 'DOCX / PDF' }
-    ],
-    proStrategy: "Activar la atenuante del Art. 11 N° 9 del Código Penal a través de la entrega voluntaria anticipada."
+    documentsAvailable: [],
+    proStrategy: "Activar la atenuante del Art. 11 N° 9 del Código Penal a través de la entrega voluntaria."
   },
 
   despido_injustificado: {
@@ -286,25 +280,18 @@ export const KNOWLEDGE_BASE = {
       "Código del Trabajo (Art. 160, 162, 168 y 177)",
       "Ley Bustos (Ley N° 19.631)"
     ],
-    summary: "El despido verbal no existe en Chile. Todo despido requiere carta formal. Si hay morosidad previsional, el despido es nulo (Ley Bustos).",
+    summary: "El despido verbal no existe en Chile. Todo despido requiere carta formal.",
     legalDetails: [
       {
         article: "Art. 162 - Ley Bustos",
         description: "Si las cotizaciones previsionales no están pagadas al día, el despido es nulo y se siguen devengando sueldos."
-      },
-      {
-        article: "Art. 168 - Reclamo en Inspección del Trabajo",
-        description: "Plazo de 60 días hábiles para demandar por despido injustificado con recargos del 30% al 100%."
       }
     ],
     actionSteps: [
-      "Ingresar reclamo en dt.gob.cl con ClaveÚnica.",
-      "Firma finiquito obligatoriamente con Reserva de Derechos manuscrita."
+      "Ingresar reclamo en dt.gob.cl con ClaveÚnica."
     ],
-    documentsAvailable: [
-      { id: 'carta_reserva_derechos', title: 'Carta de Reserva de Derechos en Finiquito', format: 'DOCX / PDF' }
-    ],
-    proStrategy: "Dejar constancia en la DT por impedimento de ingreso para desacreditar la causal de inconcurrencia."
+    documentsAvailable: [],
+    proStrategy: "Dejar constancia en la DT por impedimento de ingreso."
   },
 
   no_pago_arriendo: {
@@ -314,8 +301,7 @@ export const KNOWLEDGE_BASE = {
     riskLevel: "ACCIÓN CIVIL MONITORIA",
     riskColor: "#eab308",
     codesReferenced: [
-      "Ley N° 21.461 (Ley Devuélveme mi Casa)",
-      "Ley N° 18.101 de Arrendamiento Urbano"
+      "Ley N° 21.461 (Ley Devuélveme mi Casa)"
     ],
     summary: "Permite la restitución precautoria del inmueble en plazos de 10 días tras notificar la demanda por no pago de rentas.",
     legalDetails: [
@@ -325,13 +311,10 @@ export const KNOWLEDGE_BASE = {
       }
     ],
     actionSteps: [
-      "Enviar carta notarial de requerimiento.",
-      "Demanda en Juicio Monitorio en Juzgado Civil."
+      "Enviar carta notarial de requerimiento."
     ],
-    documentsAvailable: [
-      { id: 'notificacion_arriendo_mora', title: 'Carta Notarial de Término de Arriendo', format: 'DOCX / PDF' }
-    ],
-    proStrategy: "Verificar firma notarial en el contrato para agilizar el lanzamiento."
+    documentsAvailable: [],
+    proStrategy: "Verificar firma notarial en el contrato."
   },
 
   garantia_producto: {
@@ -352,12 +335,9 @@ export const KNOWLEDGE_BASE = {
       }
     ],
     actionSteps: [
-      "Reclamar en el local con boleta.",
-      "Ingresar reclamo en sernac.cl."
+      "Reclamar en el local con boleta."
     ],
-    documentsAvailable: [
-      { id: 'reclamo_sernac_template', title: 'Minuta de Reclamo ante SERNAC', format: 'DOCX / PDF' }
-    ],
+    documentsAvailable: [],
     proStrategy: "Exigir la devolución del dinero si el consumidor así lo prefiere."
   },
 
@@ -379,18 +359,15 @@ export const KNOWLEDGE_BASE = {
       }
     ],
     actionSteps: [
-      "Solicitar liquidación en ojv.pjud.cl.",
-      "Solicitar retención de fondos de AFP."
+      "Solicitar liquidación en ojv.pjud.cl."
     ],
-    documentsAvailable: [
-      { id: 'solicitud_liquidacion_pjud', title: 'Solicitud de Liquidación en PJUD', format: 'DOCX / PDF' }
-    ],
+    documentsAvailable: [],
     proStrategy: "Activar el cobro mediante retención de devolución de renta y fondos previsionales."
   }
 };
 
 /**
- * Analizador Inteligente con Desambiguación Jerárquica NLU
+ * Analizador Inteligente
  */
 export function analyzeCustomQuery(userQuery, categoryId = 'all') {
   if (!userQuery || userQuery.trim().length === 0) return null;
