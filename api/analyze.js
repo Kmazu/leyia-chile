@@ -15,12 +15,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'La consulta no puede estar vacía' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
   if (!apiKey) {
     return res.status(200).json({
       status: 'error',
-      message: 'La variable GEMINI_API_KEY no está configurada en las variables de entorno de Vercel.',
+      message: 'La variable GEMINI_API_KEY o VITE_GEMINI_API_KEY no está configurada en las variables de entorno de Vercel.',
       needApiKey: true
     });
   }
