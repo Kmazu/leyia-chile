@@ -131,6 +131,7 @@ Reglas estrictas de razonamiento para Chile:
         status: 'error',
         message: 'La API Key introducida en Vercel requiere habilitar el servicio de Gemini o ser una clave de Google AI Studio.',
         solution: 'Obtén tu API Key gratuita en https://aistudio.google.com/app/apikey (Generative Language API) e ingrésala en Vercel.',
+        rawGoogleError: error.message,
         needApiKey: true
       });
     }
