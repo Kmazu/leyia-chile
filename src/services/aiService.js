@@ -68,7 +68,7 @@ Reglas estrictas de razonamiento para Chile:
    - En robos reales a casas o incendios con personas adentro, aplica presidio del Código Penal (Art. 440 o 474 CP) y explica el apercibimiento del Art. 26 CPP.
 3. RESPONDE ÚNICAMENTE CON EL OBJETO JSON. NO AGREGUES TEXTO EXTRA NI BLOQUES MARKDOWN FUERA DEL JSON.`;
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientApiKey}`, {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${clientApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
