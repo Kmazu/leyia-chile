@@ -65,22 +65,47 @@ Reglas estrictas de razonamiento para Chile:
    - En robos reales a casas o incendios con personas adentro, aplica presidio del Código Penal (Art. 440 o 474 CP) y explica el apercibimiento del Art. 26 CPP.
 3. RESPONDE ÚNICAMENTE CON EL OBJETO JSON. NO AGREGUES TEXTO EXTRA NI BLOQUES MARKDOWN FUERA DEL JSON.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
-        ],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
-      })
-    });
+    const candidateModels = [
+      'gemini-1.5-flash-latest',
+      'gemini-2.0-flash',
+      'gemini-2.5-flash',
+      'gemini-1.5-pro',
+      'gemini-1.5-flash'
+    ];
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Gemini API HTTP Error ${response.status}: ${errText}`);
+    let response = null;
+    let lastErrorText = '';
+    let selectedModel = '';
+
+    for (const modelName of candidateModels) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
+            ],
+            generationConfig: {
+              response_mime_type: "application/json"
+            }
+          })
+        });
+
+        if (res.ok) {
+          response = res;
+          selectedModel = modelName;
+          break;
+        } else {
+          lastErrorText = await res.text();
+        }
+      } catch (e) {
+        lastErrorText = e.message;
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error(`Gemini API HTTP Error: ${lastErrorText}`);
     }
 
     const data = await response.json();
@@ -95,7 +120,7 @@ Reglas estrictas de razonamiento para Chile:
 
     return res.status(200).json({
       status: 'success',
-      engine: 'Google Gemini 1.5 Flash (Live Cloud API)',
+      engine: `Google Gemini (${selectedModel})`,
       data: parsedJson
     });
   } catch (error) {
