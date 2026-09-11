@@ -68,12 +68,17 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     const pInfo = securityService.generatePrivacyBadge();
     setPrivacyInfo(pInfo);
 
-    const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
-    setActiveResult(result);
-    setIsAnalyzing(false);
+    try {
+      const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
+      setActiveResult(result);
 
-    if (result && result.title) {
-      authService.saveCase(result);
+      if (result && result.title) {
+        authService.saveCase(result);
+      }
+    } catch (err) {
+      console.error('Error en ejecución de análisis:', err);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 

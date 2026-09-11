@@ -69,9 +69,7 @@ Reglas estrictas de razonamiento para Chile:
 
     const candidateModels = [
       'gemini-1.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.5-flash',
-      'gemini-1.5-pro'
+      'gemini-2.0-flash'
     ];
 
     let response = null;
@@ -81,9 +79,8 @@ Reglas estrictas de razonamiento para Chile:
     for (const modelName of candidateModels) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 9000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        // Intento 1: Con response_mime_type application/json
         let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -91,27 +88,9 @@ Reglas estrictas de razonamiento para Chile:
           body: JSON.stringify({
             contents: [
               { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
-            ],
-            generationConfig: {
-              response_mime_type: "application/json"
-            }
+            ]
           })
         });
-
-        // Intento 2: Si el modelo no soporta response_mime_type en esa key, probar sin generationConfig
-        if (!res.ok) {
-          lastErrorText = await res.text();
-          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [
-                { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
-              ]
-            })
-          });
-        }
         clearTimeout(timeoutId);
 
         if (res.ok) {

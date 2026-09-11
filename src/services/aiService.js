@@ -17,8 +17,10 @@ function generateChileanLegalFallback(query, category) {
   const isConsumidor = q.includes('compra') || q.includes('tienda') || q.includes('garantia') || q.includes('boleta') || q.includes('sernac') || q.includes('producto') || q.includes('banco') || q.includes('estafa') || q.includes('cobro');
   const isFamilia = q.includes('pension') || q.includes('hijo') || q.includes('alimento') || q.includes('padre') || q.includes('madre') || q.includes('divorcio') || q.includes('visita');
 
+  const isAlimentos = q.includes('pension') || q.includes('alimento') || q.includes('deud') || q.includes('hijo') || q.includes('registro deudores') || q.includes('retencion') || q.includes('afp');
+
   // Detectar saludos o textos cortos no jurídicos
-  const isGreeting = q === 'hola' || q === 'buenas' || q === 'buenos dias' || q === 'buenas tardes' || q === 'buenas noches' || q === 'saludos' || q === 'hola!' || q === 'chao' || q.startsWith('hola ') || (q.length <= 4 && !isLaboral && !isRobo && !isLesiones && !isArriendo && !isTransito);
+  const isGreeting = q === 'hola' || q === 'buenas' || q === 'buenos dias' || q === 'buenas tardes' || q === 'buenas noches' || q === 'saludos' || q === 'hola!' || q === 'chao' || q.startsWith('hola ') || (q.length <= 4 && !isLaboral && !isRobo && !isLesiones && !isArriendo && !isTransito && !isAlimentos);
 
   if (isGreeting) {
     return {
@@ -49,6 +51,46 @@ function generateChileanLegalFallback(query, category) {
       ],
       documentsAvailable: [],
       proStrategy: "Puedes escribir cualquier consulta real o hacer clic en uno de los casos frecuentes de prueba abajo para ver un análisis legal completo."
+    };
+  }
+
+  // 1. PENSIÓN DE ALIMENTOS / LEY 21.389 / APREMIOS Y RETENCIONES
+  if (isAlimentos) {
+    return {
+      title: "Análisis de Pensión de Alimentos: Ley N° 21.389 y Medidas de Apremio en Chile",
+      category: "familia",
+      subjectDetected: "Alimentante / Alimentario (Derecho de Familia de Chile)",
+      riskLevel: "ALTO RIESGO / MEDIDAS DE APREMIO Y REGISTRO DE DEUDORES",
+      riskColor: "#ef4444",
+      codesReferenced: [
+        "Ley N° 21.389 (Registro Nacional de Deudores de Pensiones de Alimentos)",
+        "Ley N° 14.908 sobre Abandonos de Familia y Pago de Pensiones Alimenticias",
+        "Ley N° 21.484 de Responsabilidad Parental y Pago Efectivo"
+      ],
+      summary: `Respecto a su consulta sobre pensión de alimentos ("${query}"), la legislación chilena contempla severas sanciones e instrumentos de cobro ejecutivo. El no pago de pensiones decretadas judicialmente (3 cuotas consecutivas o 5 discontinuas) determina la inscripción automática en el Registro Nacional de Deudores de Pensiones de Alimentos (Ley 21.389). Asimismo, el Tribunal de Familia puede decretar de oficio o a petición de parte apremios personales (arresto nocturno de 22:00 a 06:00 horas, ampliable a arresto completo por 15 días) y medidas de retención económica.`,
+      legalDetails: [
+        {
+          article: "Ley N° 21.389 (Registro Nacional de Deudores)",
+          description: "Sanciona al alimentante moroso con suspensión de la licencia de conducir, retención de la devolución de impuestos en Tesorería (TGR), rechazo de créditos bancarios e imposibilidad de renovar pasaporte o transferir vehículos."
+        },
+        {
+          article: "Ley N° 14.908 Art. 14, 16 y 18 (Medidas de Apremio)",
+          description: "Establece el arresto nocturno (hasta 15 días renovables), arresto efectivo, arraigo nacional (prohibición de salir del país) y la retención de indemnizaciones laborales."
+        },
+        {
+          article: "Ley N° 21.484 (Pago Efectivo mediante Fondos AFP / Cuentas)",
+          description: "Permite al juez de familia ordenar la retención directa de fondos en cuentas bancarias, instrumentos financieros o saldo de capitalización individual en la AFP del alimentante."
+        }
+      ],
+      actionSteps: [
+        "Solicite en el Portal del Poder Judicial (sitio.pjud.cl) o Tribunal de Familia la Liquidación de la Deuda de Pensión de Alimentos.",
+        "Solicite al Juez de Familia la aplicación de medidas de apremio (Arresto Nocturno, Arraigo Nacional y Retención de Fondos Bancarios/AFP).",
+        "Si usted es el alimentante y cambiaron sus ingresos, interponga de inmediato una Demanda de Rebaja de Pensión de Alimentos para ajustar el monto a su capacidad económica actual."
+      ],
+      documentsAvailable: [
+        { id: "doc_ley_21389_alimentos", title: "Solicitud Notarial / Judicial de Liquidación y Apremio por Alimentos", format: "PDF Formulario Notarial" }
+      ],
+      proStrategy: "Solicitar la retención especial de la Ley 21.484 sobre saldos bancarios y fondos de AFP, junto con el embargo de devoluciones de impuestos anuales de Tesorería."
     };
   }
 
