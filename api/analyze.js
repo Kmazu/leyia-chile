@@ -83,7 +83,8 @@ Reglas estrictas de razonamiento para Chile:
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 9000);
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+        // Intento 1: Con response_mime_type application/json
+        let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
@@ -96,6 +97,21 @@ Reglas estrictas de razonamiento para Chile:
             }
           })
         });
+
+        // Intento 2: Si el modelo no soporta response_mime_type en esa key, probar sin generationConfig
+        if (!res.ok) {
+          lastErrorText = await res.text();
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [
+                { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
+              ]
+            })
+          });
+        }
         clearTimeout(timeoutId);
 
         if (res.ok) {
@@ -122,7 +138,8 @@ Reglas estrictas de razonamiento para Chile:
     }
 
     const cleanedText = candidateText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsedJson = JSON.parse(cleanedText);
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    const parsedJson = JSON.parse(jsonMatch ? jsonMatch[0] : cleanedText);
 
     return res.status(200).json({
       status: 'success',

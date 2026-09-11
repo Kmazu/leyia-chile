@@ -11,13 +11,14 @@ function generateChileanLegalFallback(query, category) {
   // Extraer términos clave
   const isLaboral = q.includes('despid') || q.includes('finiquit') || q.includes('trabaj') || q.includes('sueldo') || q.includes('inspeccion') || q.includes('contrato') || q.includes('jefe') || q.includes('empresa') || q.includes('horas extra');
   const isArriendo = q.includes('arriend') || q.includes('casa') || q.includes('renta') || q.includes('inquilino') || q.includes('arrendatario') || q.includes('garantia') || q.includes('departamento') || q.includes('gastos comunes') || q.includes('desahucio');
-  const isPenal = q.includes('golp') || q.includes('pelea') || q.includes('lesion') || q.includes('rob') || q.includes('hurt') || q.includes('amenaz') || q.includes('carabinero') || q.includes('fiscalia') || q.includes('delit') || q.includes('preso') || q.includes('caja');
+  const isRobo = q.includes('rob') || q.includes('hurt') || q.includes('habitad') || q.includes('carcel') || q.includes('presid') || q.includes('pena') || q.includes('condena');
+  const isLesiones = q.includes('golp') || q.includes('pelea') || q.includes('lesion') || q.includes('amenaz') || q.includes('carabinero') || q.includes('fiscalia');
   const isTransito = q.includes('choq') || q.includes('auto') || q.includes('vehicul') || q.includes('atropell') || q.includes('licencia') || q.includes('seguro') || q.includes('soap') || q.includes('multa') || q.includes('parte');
   const isConsumidor = q.includes('compra') || q.includes('tienda') || q.includes('garantia') || q.includes('boleta') || q.includes('sernac') || q.includes('producto') || q.includes('banco') || q.includes('estafa') || q.includes('cobro');
   const isFamilia = q.includes('pension') || q.includes('hijo') || q.includes('alimento') || q.includes('padre') || q.includes('madre') || q.includes('divorcio') || q.includes('visita');
 
   // Detectar saludos o textos cortos no jurídicos
-  const isGreeting = q === 'hola' || q === 'buenas' || q === 'buenos dias' || q === 'buenas tardes' || q === 'buenas noches' || q === 'saludos' || q === 'hola!' || q === 'chao' || q.startsWith('hola ') || (q.length <= 4 && !isLaboral && !isPenal && !isArriendo && !isTransito);
+  const isGreeting = q === 'hola' || q === 'buenas' || q === 'buenos dias' || q === 'buenas tardes' || q === 'buenas noches' || q === 'saludos' || q === 'hola!' || q === 'chao' || q.startsWith('hola ') || (q.length <= 4 && !isLaboral && !isRobo && !isLesiones && !isArriendo && !isTransito);
 
   if (isGreeting) {
     return {
@@ -48,6 +49,51 @@ function generateChileanLegalFallback(query, category) {
       ],
       documentsAvailable: [],
       proStrategy: "Puedes escribir cualquier consulta real o hacer clic en uno de los casos frecuentes de prueba abajo para ver un análisis legal completo."
+    };
+  }
+
+  // 1. ROBO / LUGAR HABITADO / PENAS PRIVATIVAS DE LIBERTAD
+  if (isRobo) {
+    const isLugarHabitado = q.includes('habitad') || q.includes('casa') || q.includes('hogar');
+    return {
+      title: isLugarHabitado 
+        ? "Análisis Penal: Robo en Lugar Habitado y Penas Mínimas de Cárcel"
+        : `Evaluación Penal de Robo / Hurto: ${query.slice(0, 60)}`,
+      category: "penal",
+      subjectDetected: isLugarHabitado ? "Delito Contra la Propiedad (Art. 440 N° 1 Código Penal)" : "Delito de Robo / Hurto (Código Penal)",
+      riskLevel: "CRÍTICO PENAL / CÁRCEL EFECTIVA",
+      riskColor: "#ef4444",
+      codesReferenced: [
+        "Código Penal de la República de Chile (Art. 440 y ss.)",
+        "Ley N° 20.603 sobre Penas Sustitutivas de Libertad",
+        "Código Procesal Penal (Ley N° 19.696)"
+      ],
+      summary: isLugarHabitado
+        ? `Respecto a su consulta sobre robo en lugar habitado ("${query}"), el Art. 440 N° 1 del Código Penal chileno sanciona este delito con la pena de Presidio Mayor en su grado mínimo, es decir, de 5 años y 1 día a 10 años de cárcel. El mínimo legal absoluto al que se puede optar en tribunal es de 5 AÑOS Y 1 DÍA DE CÁRCEL EFECTIVA. Únicamente si el imputado cuenta con irreprochable conducta anterior (atenuante Art. 11 N° 6 del Código Penal) o si concurre la colaboración sustancial (Art. 11 N° 9 CP), el tribunal puede imponer la pena en su tramo mínimo.`
+        : `Analizada su consulta ("${query}"), los delitos contra la propiedad (Robo con Fuerza, Robo con Intimidación o Hurto) están fuertemente sancionados en Chile. Las penas varían según el valor de lo sustraído y los medios empleados (escalamiento, fuerza en las cosas o violencia en las personas).`,
+      legalDetails: [
+        {
+          article: "Art. 440 N° 1 del Código Penal (Robo en Lugar Habitado)",
+          description: "Establece la pena de Presidio Mayor en su grado mínimo (5 años y 1 día a 10 años). La ley chilena exige el cumplimiento en establecimiento penitenciario, salvo recalificación de la pena."
+        },
+        {
+          article: "Art. 11 N° 6 del Código Penal (Irreprochable Conducta Anterior)",
+          description: "Atenuante de responsabilidad penal que permite al tribunal fijar el mínimo de la pena asignada por la ley (5 años y 1 día)."
+        },
+        {
+          article: "Ley N° 20.603 (Penas Sustitutivas de Libertad)",
+          description: "Determina las condiciones para optar a libertad vigilada intensiva o remisión condicional en delitos que no superen los 3 o 5 años de presidio."
+        }
+      ],
+      actionSteps: [
+        "Designar de inmediato un Abogado Defensor Penal (Defensoría Penal Pública o Abogado Privado) para la Audiencia de Control de Detención.",
+        "Solicitar el Certificado de Antecedentes para acreditar formalmente la atenuante de irreprochable conducta anterior (Art. 11 N° 6 CP).",
+        "Evaluar con la defensa la conveniencia de optar a un Procedimiento Abreviado (Art. 406 CPP) para acordar una pena rebajada con la Fiscalía."
+      ],
+      documentsAvailable: [
+        { id: "doc_constatacion_lesiones", title: "Minuta de Defensa Penal y Solicitud de Atenuantes (Art. 11 CP)", format: "PDF Formulario" }
+      ],
+      proStrategy: "En audiencia ante el Juzgado de Garantía o Juicio Oral, invocar conjuntamente las atenuantes del Art. 11 N° 6 e irreprochable conducta anterior para fijar el presidio en el mínimum legal."
     };
   }
 
