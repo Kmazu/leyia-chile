@@ -11,7 +11,9 @@ import { DocumentGenerator } from './DocumentGenerator';
 import { ExportReportModal } from './ExportReportModal';
 import { FeedbackWidget } from './FeedbackWidget';
 
-export function LegalAssistant({ isProPlan, onOpenPricing }) {
+import { authService } from '../services/authService';
+
+export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [queryInput, setQueryInput] = useState('');
   const [anonymizedStatus, setAnonymizedStatus] = useState(null);
@@ -56,6 +58,10 @@ export function LegalAssistant({ isProPlan, onOpenPricing }) {
     const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
     setActiveResult(result);
     setIsAnalyzing(false);
+
+    if (result && result.title) {
+      authService.saveCase(result);
+    }
   };
 
   // Selección de escenario predefinido
@@ -346,6 +352,13 @@ export function LegalAssistant({ isProPlan, onOpenPricing }) {
 
         </section>
       )}
+
+      {/* Repositorio de Documentos Rellenables */}
+      <DocumentGenerator 
+        userPlan={userPlan}
+        onOpenPricing={onOpenPricing}
+        onSaveDoc={onSaveDoc}
+      />
 
       {/* Modal de Exportación a PDF */}
       <ExportReportModal

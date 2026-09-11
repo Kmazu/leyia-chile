@@ -17,52 +17,52 @@ export const LEGAL_CATEGORIES = [
 
 export const PRESET_SCENARIOS = [
   {
-    id: 'agresion_vecino',
-    category: 'penal',
-    title: 'Agresión Física y Lesiones a Vecino',
-    prompt: 'Mi tío fue y le pegó al vecino, ¿qué le pasará si lo denuncian?',
-    tag: 'Art. 399 & 494 N° 5 CP',
-    badge: 'Penal'
-  },
-  {
-    id: 'hurto_escaso_valor',
-    category: 'penal',
-    title: 'Hurto de Especie de Escaso Valor',
-    prompt: 'Ayer robé una manzana de un negocio y maté un pajarito en el patio, ¿me puede pasar algo?',
-    tag: 'Art. 494 N° 19 CP',
-    badge: 'Falta Menor'
-  },
-  {
-    id: 'incendio_muerte',
-    category: 'penal',
-    title: 'Incendio de Inmueble con Personas',
-    prompt: 'Ayer quemé mi casa con mi suegra adentro y me fui, ¿qué me puede pasar?',
-    tag: 'Código Penal (Art. 474)',
-    badge: 'Gravísimo'
-  },
-  {
-    id: 'atropello_mascota',
-    category: 'penal',
-    title: 'Accidente / Atropello a Mascota',
-    prompt: 'Ayer atropellé a un perrito en la mitad de la calle y me fui, ¿me puede pasar algo?',
-    tag: 'Ley Cholito N° 21.020',
-    badge: 'Policía Local'
-  },
-  {
-    id: 'despido_injustificado',
+    id: 'despido_sin_finiquito',
     category: 'laboral',
-    title: 'Despido Injustificado / Sin Finiquito',
-    prompt: 'Me despidieron verbalmente por necesidades de la empresa pero no me enviaron carta ni me han pagado el finiquito.',
-    tag: 'Código del Trabajo',
-    badge: 'Alto Riesgo'
+    title: 'Despido sin Finiquito ni Cotizaciones al Día',
+    prompt: 'Me despidieron sin pago de finiquito ni cotizaciones previsionales al día, ¿qué puedo hacer?',
+    tag: 'Ley Bustos / C. del Trabajo',
+    badge: 'Laboral'
   },
   {
     id: 'no_pago_arriendo',
     category: 'civil',
-    title: 'Arrendatario Moroso (No Pago de Renta)',
-    prompt: 'Tengo un departamento arrendado y el inquilino lleva 3 meses sin pagar la renta ni los gastos comunes.',
-    tag: 'Ley Devuélveme mi Casa',
-    badge: 'Acción Civil'
+    title: 'Arrendatario Moroso (Ley Devuélveme mi Casa)',
+    prompt: 'El arrendatario lleva 3 meses sin pagar la renta de la casa (Ley Devuélveme mi Casa N° 21.461).',
+    tag: 'Ley 21.461 de Arriendos',
+    badge: 'Juicio Rápido'
+  },
+  {
+    id: 'deuda_alimentos',
+    category: 'familia',
+    title: 'Deuda de Pensión de Alimentos',
+    prompt: 'Mi ex pareja no paga la pensión de alimentos y fue inscrita en el Registro de Deudores (Ley 21.389).',
+    tag: 'Ley 21.389 Alimentos',
+    badge: 'Retención Fondos'
+  },
+  {
+    id: 'choque_fuga',
+    category: 'penal',
+    title: 'Accidente de Tránsito y Fuga',
+    prompt: 'Me chocaron el vehículo estacionado y el conductor se dio a la fuga sin dar cuenta.',
+    tag: 'Ley N° 18.290 de Tránsito',
+    badge: 'JPL / Penal'
+  },
+  {
+    id: 'producto_defectuoso_sernac',
+    category: 'consumidor',
+    title: 'Garantía Legal y Reclamo SERNAC',
+    prompt: 'Compré un producto defectuoso en una tienda online y no quieren hacer valer la garantía legal de 6 meses.',
+    tag: 'Ley 19.496 SERNAC',
+    badge: 'Garantía 6 Meses'
+  },
+  {
+    id: 'cobranza_prescrita',
+    category: 'civil',
+    title: 'Deuda Prescrita y Cobranza Judicial',
+    prompt: 'Recibí una carta de cobranza judicial por una deuda bancaria de hace más de 5 años.',
+    tag: 'Prescripción C. Civil',
+    badge: 'Prescripción'
   }
 ];
 

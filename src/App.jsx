@@ -1,47 +1,135 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { LegalAssistant } from './components/LegalAssistant';
 import { PricingModal } from './components/PricingModal';
-import { ShieldCheck, Scale, ExternalLink } from 'lucide-react';
+import { CheckoutModal } from './components/CheckoutModal';
+import { AuthModal } from './components/AuthModal';
+import { UserDashboardModal } from './components/UserDashboardModal';
+import { authService } from './services/authService';
+import { Scale, ExternalLink, ShieldCheck } from 'lucide-react';
 
 export function App() {
-  const [isProPlan, setIsProPlan] = useState(false);
+  const [user, setUser] = useState(null);
+  const [userPlan, setUserPlan] = useState('starter'); // 'starter' | 'pro' ($5.990) | 'plus' ($9.990)
+  
+  // Modales
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [targetCheckoutPlan, setTargetCheckoutPlan] = useState('pro'); // 'pro' | 'plus'
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
-  const handleTogglePlan = () => {
-    setIsProPlan(!isProPlan);
+  // Listas del Usuario
+  const [savedCases, setSavedCases] = useState([]);
+  const [emittedDocs, setEmittedDocs] = useState([]);
+
+  useEffect(() => {
+    // Cargar sesión guardada y datos de usuario
+    const u = authService.getUser();
+    if (u) {
+      setUser(u);
+      setUserPlan(u.plan || 'starter');
+    }
+    setSavedCases(authService.getSavedCases());
+    setEmittedDocs(authService.getEmittedDocs());
+  }, []);
+
+  const handleAuthSuccess = (loggedUser) => {
+    setUser(loggedUser);
+    setUserPlan(loggedUser.plan || 'starter');
+    setSavedCases(authService.getSavedCases());
+    setEmittedDocs(authService.getEmittedDocs());
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setUser(null);
+    setUserPlan('starter');
+    setIsDashboardOpen(false);
+  };
+
+  const handleOpenCheckout = (planToCheckout) => {
+    setTargetCheckoutPlan(planToCheckout);
+    setIsPricingOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleUpgradeSuccess = (upgradedPlan) => {
+    setUserPlan(upgradedPlan);
+    if (user) {
+      const updated = authService.updatePlan(upgradedPlan);
+      setUser(updated);
+    }
+    setIsCheckoutOpen(false);
+  };
+
+  const handleSaveEmittedDoc = (docData) => {
+    const updatedDocs = authService.saveEmittedDoc(docData);
+    setEmittedDocs(updatedDocs);
   };
 
   return (
     <div className="app-container">
       {/* Barra de Navegación */}
       <Navbar 
-        isProPlan={isProPlan} 
-        onOpenPricing={() => setIsPricingOpen(true)} 
-        onTogglePlan={handleTogglePlan}
+        user={user}
+        userPlan={userPlan} 
+        onOpenPricing={(plan) => {
+          setTargetCheckoutPlan(plan || 'pro');
+          setIsPricingOpen(true);
+        }}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenDashboard={() => setIsDashboardOpen(true)}
       />
 
       {/* Asistente e Inteligencia Legal */}
       <LegalAssistant 
-        isProPlan={isProPlan} 
-        onOpenPricing={() => setIsPricingOpen(true)} 
+        userPlan={userPlan}
+        onOpenPricing={(plan) => handleOpenCheckout(plan || 'plus')}
+        onSaveDoc={handleSaveEmittedDoc}
       />
 
-      {/* Modal de Precios y Suscripciones */}
+      {/* Modal de Precios y Tarifas */}
       <PricingModal 
         isOpen={isPricingOpen} 
         onClose={() => setIsPricingOpen(false)}
-        isProPlan={isProPlan}
-        onUpgradePro={() => setIsProPlan(true)}
+        userPlan={userPlan}
+        onSelectPlanToCheckout={handleOpenCheckout}
+      />
+
+      {/* Modal de Pasarela de Pago y Transferencia */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        targetPlan={targetCheckoutPlan}
+        onUpgradeSuccess={handleUpgradeSuccess}
+      />
+
+      {/* Modal de Autenticación de Usuario */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Modal de Panel de Usuario y Seguimiento */}
+      <UserDashboardModal
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+        onOpenPricing={(plan) => handleOpenCheckout(plan)}
+        savedCases={savedCases}
+        emittedDocs={emittedDocs}
       />
 
       {/* Pie de Página Legal & Disclaimer de Responsabilidad */}
-      <footer className="footer-disclaimer">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#fff', fontWeight: 600 }}>
-          <Scale size={16} color="#6366f1" /> LeyIA Chile — Inteligencia & Orientación Jurídica
+      <footer className="footer-disclaimer" style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>
+          <Scale size={16} color="var(--primary-accent)" /> LeyIA Chile — Inteligencia & Orientación Jurídica
         </div>
 
-        <p style={{ maxWidth: '850px', margin: '0 auto 1.25rem', color: 'var(--text-muted)' }}>
+        <p style={{ maxWidth: '850px', margin: '0 auto 1.25rem', color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>
           <strong>Aviso de Exención de Responsabilidad Legal (Disclaimer):</strong> La información provista por LeyIA Chile es de carácter netamente formativo, pedagógico u orientativo, y se basa en los códigos y leyes de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito, Ley de Arriendos, entre otros). Esta plataforma <u>no constituye patrocinio ni asesoría legal formal</u> para representar causas en tribunales. Para la tramitación de juicios o representación oficial, se aconseja consultar con un(a) abogado(a) habilitado(a) o acudir a las instituciones del Estado.
         </p>
 
