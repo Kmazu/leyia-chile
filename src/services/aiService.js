@@ -16,6 +16,41 @@ function generateChileanLegalFallback(query, category) {
   const isConsumidor = q.includes('compra') || q.includes('tienda') || q.includes('garantia') || q.includes('boleta') || q.includes('sernac') || q.includes('producto') || q.includes('banco') || q.includes('estafa') || q.includes('cobro');
   const isFamilia = q.includes('pension') || q.includes('hijo') || q.includes('alimento') || q.includes('padre') || q.includes('madre') || q.includes('divorcio') || q.includes('visita');
 
+  // Detectar saludos o textos cortos no jurídicos
+  const isGreeting = q === 'hola' || q === 'buenas' || q === 'buenos dias' || q === 'buenas tardes' || q === 'buenas noches' || q === 'saludos' || q === 'hola!' || q === 'chao' || q.startsWith('hola ') || (q.length <= 4 && !isLaboral && !isPenal && !isArriendo && !isTransito);
+
+  if (isGreeting) {
+    return {
+      title: "Bienvenido(a) a LeyIA Chile — Orientación Jurídica Inteligente",
+      category: "general",
+      subjectDetected: "Asistente Jurídico Interactivo",
+      riskLevel: "CORTESÍA / ASISTENTE VIRTUAL",
+      riskColor: "#34d399",
+      codesReferenced: [
+        "Plataforma de Orientación Legal LeyIA Chile",
+        "Códigos y Leyes de la República de Chile"
+      ],
+      summary: "¡Hola! Bienvenido(a) a LeyIA Chile. Soy tu asistente jurista de Inteligencia Artificial. Analizo situaciones según el ordenamiento jurídico de Chile (Código Penal, Civil, del Trabajo, Ley 21.461 de Arriendos, Ley de Tránsito, SERNAC y Alimentos). ¿En qué situación o consulta legal te puedo orientar hoy?",
+      legalDetails: [
+        {
+          article: "Consulta en Lenguaje Natural",
+          description: "Escribe tu situación con tus propias palabras (ej: 'Me despidieron sin pagar finiquito', 'Mi arrendatario no paga el arriendo', 'Tuve un choque de tránsito')."
+        },
+        {
+          article: "Privacidad Garantizada (Ley N° 19.628)",
+          description: "Tus datos personales y RUT se anonimizan automáticamente para resguardar tu estricta confidencialidad."
+        }
+      ],
+      actionSteps: [
+        "Escribe tu consulta en el recuadro superior describiendo la situación ocurrida.",
+        "Revisa la evaluación de riesgo, leyes chilenas aplicables y plazos legales para actuar.",
+        "Genera documentos notariales descargables en PDF si necesitas iniciar un trámite formal."
+      ],
+      documentsAvailable: [],
+      proStrategy: "Puedes escribir cualquier consulta real o hacer clic en uno de los casos frecuentes de prueba abajo para ver un análisis legal completo."
+    };
+  }
+
   // Título personalizado basado en los primeros términos de la pregunta
   let customTitle = `Análisis Jurídico: "${snippet}"`;
   
