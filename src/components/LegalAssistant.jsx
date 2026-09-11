@@ -14,6 +14,9 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { authService } from '../services/authService';
 
 export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
+  const isProPlan = userPlan === 'pro' || userPlan === 'plus';
+  const isPlusPlan = userPlan === 'plus';
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [queryInput, setQueryInput] = useState('');
   const [anonymizedStatus, setAnonymizedStatus] = useState(null);
@@ -334,13 +337,13 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             <div 
               className="result-risk-tag"
               style={{
-                background: `rgba(${activeResult.riskLevel.includes('GRAVÍSIMO') || activeResult.riskLevel.includes('CRÍTICO') ? '239, 68, 68' : '249, 115, 22'}, 0.15)`,
-                border: `1px solid ${activeResult.riskColor}`,
-                color: activeResult.riskColor
+                background: `rgba(${(activeResult.riskLevel || '').includes('GRAVÍSIMO') || (activeResult.riskLevel || '').includes('CRÍTICO') ? '239, 68, 68' : '249, 115, 22'}, 0.15)`,
+                border: `1px solid ${activeResult.riskColor || '#34d399'}`,
+                color: activeResult.riskColor || '#34d399'
               }}
             >
               <AlertTriangle size={18} />
-              <span>Nivel de Riesgo: {activeResult.riskLevel}</span>
+              <span>Nivel de Riesgo: {activeResult.riskLevel || 'MODERADO'}</span>
             </div>
           </div>
 
@@ -349,7 +352,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-accent)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Síntesis Jurídica del Caso
             </div>
-            {activeResult.summary}
+            {activeResult.summary || 'Análisis legal procesado por LeyIA Chile.'}
           </div>
 
           {/* Códigos y Artículos Chilenos Aplicables */}
@@ -359,7 +362,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             </h3>
 
             <div className="codes-grid">
-              {activeResult.legalDetails.map((detail, idx) => (
+              {(activeResult.legalDetails || []).map((detail, idx) => (
                 <div key={idx} className="code-box">
                   <div className="code-article">{detail.article}</div>
                   <p className="code-desc">{detail.description}</p>
@@ -374,7 +377,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
               <CheckCircle2 size={18} /> Plan de Acción Recomendado
             </h3>
 
-            {activeResult.actionSteps.map((step, idx) => (
+            {(activeResult.actionSteps || []).map((step, idx) => (
               <div key={idx} className="checklist-item">
                 <div className="checklist-icon">
                   <CheckCircle2 size={16} />
@@ -388,7 +391,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
           {/* Generador de Documentos y Minutas en Pro */}
           <DocumentGenerator
-            documentList={activeResult.documentsAvailable}
+            documentList={activeResult.documentsAvailable || []}
             isProPlan={isProPlan}
             onOpenPricing={onOpenPricing}
           />
