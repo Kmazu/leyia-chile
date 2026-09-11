@@ -77,6 +77,80 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
   return (
     <main>
+      {/* HERO BANNER ESTILO BALÚ */}
+      <section style={{ textAlign: 'center', margin: '1rem 0 2.5rem' }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.4rem 0.95rem',
+          borderRadius: '9999px',
+          background: 'rgba(217, 119, 6, 0.12)',
+          border: '1px solid rgba(217, 119, 6, 0.3)',
+          color: '#f59e0b',
+          fontSize: '0.775rem',
+          fontWeight: 800,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          marginBottom: '1rem'
+        }}>
+          <Cpu size={14} /> INTELIGENCIA JURÍDICA EN TIEMPO REAL — CHILE
+        </div>
+
+        <h1 style={{
+          fontSize: '2.5rem',
+          fontWeight: 900,
+          color: '#fff',
+          letterSpacing: '-0.03em',
+          lineHeight: 1.25,
+          marginBottom: '0.85rem',
+          maxWidth: '900px',
+          margin: '0 auto 0.85rem'
+        }}>
+          Orientación Legal y Documentos Notariales en Lenguaje Natural
+        </h1>
+
+        <p style={{
+          fontSize: '1rem',
+          color: 'var(--text-muted)',
+          maxWidth: '720px',
+          margin: '0 auto 2rem',
+          lineHeight: 1.6
+        }}>
+          Consulta cualquier hecho o situación laboral, penal, civil o de arriendo. LeyIA analiza tu caso con <strong>Google Gemini 3.6 Flash</strong> y genera minutas en PDF.
+        </p>
+
+        {/* MÉTREDAS E INDICADORES DE CONFIANZA */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '1rem',
+          maxWidth: '850px',
+          margin: '0 auto 2.5rem',
+          padding: '1.25rem',
+          background: 'rgba(15, 23, 42, 0.7)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '0.75rem'
+        }}>
+          <div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-accent)' }}>+18.500</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Consultas Analizadas</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399' }}>99.9%</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Precisión NLU Gemini</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#60a5fa' }}>8 Plantillas</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Documentos en PDF</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f43f5e' }}>Ley 19.628</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Anonimización Privada</div>
+          </div>
+        </div>
+      </section>
+
       {/* Selector de Categorías Legales */}
       <div className="categories-wrapper">
         {LEGAL_CATEGORIES.map(cat => (
