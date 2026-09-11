@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, ShieldAlert, Briefcase, Home, ShoppingCart, Users, 
   Sparkles, ShieldCheck, ArrowRight, AlertTriangle, CheckCircle2, 
@@ -24,6 +24,16 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
   const [activeResult, setActiveResult] = useState(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [privacyInfo, setPrivacyInfo] = useState(null);
+
+  const resultRef = useRef(null);
+
+  useEffect(() => {
+    if (activeResult && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [activeResult]);
 
   // Mapeo de iconos
   const categoryIcons = {
@@ -260,8 +270,29 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
         </div>
       </div>
 
+      {/* Tarjeta de Progreso de Análisis en Vivo */}
+      {isAnalyzing && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '2rem',
+          background: 'rgba(15, 23, 42, 0.85)',
+          border: '1px solid var(--primary-accent)',
+          borderRadius: '1.25rem',
+          textAlign: 'center',
+          backdropFilter: 'blur(12px)'
+        }}>
+          <RefreshCw size={36} color="var(--primary-accent)" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
+          <h3 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.4rem' }}>
+            Generando Diagnóstico Jurídico y Evaluación de Riesgos...
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: '600px', margin: '0 auto' }}>
+            LeyIA Chile analiza los Códigos Civil, Penal, del Trabajo y Leyes Especiales con Google Gemini.
+          </p>
+        </div>
+      )}
+
       {/* Escenarios Frecuentes Sugeridos */}
-      {!activeResult && (
+      {!activeResult && !isAnalyzing && (
         <section>
           <h3 className="preset-section-title">
             <Layers size={18} color="#6366f1" /> Casos Frecuentes y Evaluaciones de Prueba
@@ -296,7 +327,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
       {/* Resultado del Análisis Legal con Desambiguador */}
       {activeResult && (
-        <section className="result-card">
+        <section className="result-card" ref={resultRef}>
           
           {/* Header del Resultado e Insignia de Sujeto Detectado */}
           <div className="result-header">
