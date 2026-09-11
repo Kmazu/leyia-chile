@@ -5,8 +5,11 @@ import { PricingModal } from './components/PricingModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { AuthModal } from './components/AuthModal';
 import { UserDashboardModal } from './components/UserDashboardModal';
+import { WorkflowSection } from './components/WorkflowSection';
+import { TrustSection } from './components/TrustSection';
+import { FaqSection } from './components/FaqSection';
 import { authService } from './services/authService';
-import { Scale, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Scale, ExternalLink, ShieldCheck, Cpu, FileText, CheckCircle2 } from 'lucide-react';
 
 export function App() {
   const [user, setUser] = useState(null);
@@ -70,7 +73,7 @@ export function App() {
 
   return (
     <div className="app-container">
-      {/* Barra de Navegación */}
+      {/* Barra de Navegación Sticky */}
       <Navbar 
         user={user}
         userPlan={userPlan} 
@@ -82,14 +85,23 @@ export function App() {
         onOpenDashboard={() => setIsDashboardOpen(true)}
       />
 
-      {/* Asistente e Inteligencia Legal */}
+      {/* HERO & ASISTENTE LEGAL CON GEMINI 3.6 FLASH */}
       <LegalAssistant 
         userPlan={userPlan}
         onOpenPricing={(plan) => handleOpenCheckout(plan || 'plus')}
         onSaveDoc={handleSaveEmittedDoc}
       />
 
-      {/* Modal de Precios y Tarifas */}
+      {/* SECCIÓN 2: FLUJO DE TRABAJO EN 3 PASOS */}
+      <WorkflowSection />
+
+      {/* SECCIÓN 3: ORGANISMOS OFICIALES DE CHILE Y PRIVACIDAD */}
+      <TrustSection />
+
+      {/* SECCIÓN 4: PREGUNTAS FRECUENTES (FAQ ACCORDION) */}
+      <FaqSection />
+
+      {/* MODALES REUTILIZABLES */}
       <PricingModal 
         isOpen={isPricingOpen} 
         onClose={() => setIsPricingOpen(false)}
@@ -97,7 +109,6 @@ export function App() {
         onSelectPlanToCheckout={handleOpenCheckout}
       />
 
-      {/* Modal de Pasarela de Pago y Transferencia */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -105,14 +116,12 @@ export function App() {
         onUpgradeSuccess={handleUpgradeSuccess}
       />
 
-      {/* Modal de Autenticación de Usuario */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
 
-      {/* Modal de Panel de Usuario y Seguimiento */}
       <UserDashboardModal
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
@@ -124,12 +133,12 @@ export function App() {
       />
 
       {/* Pie de Página Legal & Disclaimer de Responsabilidad */}
-      <footer className="footer-disclaimer" style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>
-          <Scale size={16} color="var(--primary-accent)" /> LeyIA Chile — Inteligencia & Orientación Jurídica
+      <footer className="footer-disclaimer" style={{ marginTop: '4rem', paddingTop: '2.5rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>
+          <Scale size={18} color="var(--primary-accent)" /> LeyIA Chile — Inteligencia & Orientación Jurídica
         </div>
 
-        <p style={{ maxWidth: '850px', margin: '0 auto 1.25rem', color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>
+        <p style={{ maxWidth: '850px', margin: '0 auto 1.25rem', color: 'var(--text-muted)', fontSize: '0.825rem', lineHeight: 1.6 }}>
           <strong>Aviso de Exención de Responsabilidad Legal (Disclaimer):</strong> La información provista por LeyIA Chile es de carácter netamente formativo, pedagógico u orientativo, y se basa en los códigos y leyes de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito, Ley de Arriendos, entre otros). Esta plataforma <u>no constituye patrocinio ni asesoría legal formal</u> para representar causas en tribunales. Para la tramitación de juicios o representación oficial, se aconseja consultar con un(a) abogado(a) habilitado(a) o acudir a las instituciones del Estado.
         </p>
 
@@ -149,7 +158,7 @@ export function App() {
           </a>
         </div>
 
-        <div style={{ marginTop: '1.25rem', color: 'var(--text-dim)', fontSize: '0.725rem' }}>
+        <div style={{ marginTop: '1.25rem', color: 'var(--text-dim)', fontSize: '0.75rem' }}>
           © {new Date().getFullYear()} LeyIA Chile. Protección de datos conforme a la Ley N° 19.628 sobre Protección de la Vida Privada.
         </div>
       </footer>

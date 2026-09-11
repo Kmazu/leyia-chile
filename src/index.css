@@ -1,12 +1,12 @@
-/* LeyIA Chile — Executive Law Office Design System */
+/* LeyIA Chile — Modern Dynamic Glassmorphic Design System (Estilo Balú) */
 :root {
   --font-heading: 'Playfair Display', serif;
   --font-body: 'Inter', sans-serif;
 
-  /* Executive Dark Palette (Estudio Jurídico) */
+  /* Executive Dark Palette */
   --bg-main: #0b0f19;
   --bg-card: rgba(15, 23, 42, 0.85);
-  --bg-card-hover: rgba(30, 41, 59, 0.9);
+  --bg-card-hover: rgba(30, 41, 59, 0.95);
   --bg-card-active: rgba(51, 65, 85, 0.95);
   --border-color: rgba(226, 232, 240, 0.12);
   --border-highlight: rgba(217, 119, 6, 0.4);
@@ -23,9 +23,13 @@
   --text-dim: #64748b;
 
   /* Glassmorphism Blur & Shadows */
-  --backdrop-blur: blur(12px);
+  --backdrop-blur: blur(16px);
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(217, 119, 6, 0.15);
+  --shadow-glow: 0 0 25px rgba(217, 119, 6, 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 * {
@@ -41,13 +45,22 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 20% 20%, rgba(30, 41, 59, 0.5) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(217, 119, 6, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 10% 10%, rgba(30, 41, 59, 0.6) 0%, transparent 45%),
+    radial-gradient(circle at 90% 30%, rgba(217, 119, 6, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(5, 150, 105, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* Standalone App Frame when launched in Desktop / Mobile Standalone mode */
+@media all and (display-mode: standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }
 
 /* Custom Scrollbar */
@@ -69,7 +82,7 @@ h1, h2, h3, h4, h5, h6 {
 .app-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1.5rem 3rem;
+  padding: 0 1.5rem 4rem;
 }
 
 /* Navbar Component */
@@ -77,13 +90,16 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem;
-  margin: 1.5rem 0 2rem;
+  padding: 1.1rem 2rem;
+  margin: 1.25rem 0 2rem;
   background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-lg);
+  position: sticky;
+  top: 1.25rem;
+  z-index: 100;
 }
 
 .brand-logo {
@@ -126,7 +142,7 @@ h1, h2, h3, h4, h5, h6 {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .badge-pro {
@@ -159,6 +175,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-primary {
@@ -180,6 +197,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:hover {
   opacity: 0.95;
   transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.35);
 }
 
 /* Modals */
@@ -189,8 +207,8 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -265,6 +283,13 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
   border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
+/* Card Hover Effects (Estilo Balú) */
+.trust-card:hover {
+  border-color: var(--primary-accent) !important;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-glow);
 }
 
 /* Print View Styles */
