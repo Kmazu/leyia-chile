@@ -1,0 +1,8 @@
+{
+  "appId": "cl.leyia.app",
+  "appName": "LeyIA Chile",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
