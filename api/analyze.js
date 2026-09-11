@@ -68,9 +68,9 @@ Reglas estrictas de razonamiento para Chile:
 3. RESPONDE ÚNICAMENTE CON EL OBJETO JSON SIN BLOQUES DE TEXTO FUERA DEL JSON.`;
 
     const candidateModels = [
-      'gemini-2.5-flash',
       'gemini-1.5-flash',
       'gemini-2.0-flash',
+      'gemini-2.5-flash',
       'gemini-1.5-pro'
     ];
 
@@ -81,7 +81,7 @@ Reglas estrictas de razonamiento para Chile:
     for (const modelName of candidateModels) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 9000);
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
           method: 'POST',
