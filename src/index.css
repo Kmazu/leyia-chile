@@ -156,6 +156,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1.75rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .category-pill {
@@ -205,7 +206,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-glow);
 }
 
-.query-textarea {
+.query-input-box {
   width: 100%;
   min-height: 120px;
   background: rgba(11, 15, 25, 0.7);
@@ -221,7 +222,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.2s ease;
 }
 
-.query-textarea:focus {
+.query-input-box:focus {
   outline: none;
   border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
@@ -547,6 +548,116 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--primary-accent) !important;
   transform: translateY(-3px);
   box-shadow: var(--shadow-glow);
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVA MULTIDISPOSITIVO (MÓVILES, TABLETS, LAPTOPS)
+   ========================================================================== */
+
+/* Pantallas Medianas (Tablets / Laptops 768px - 1024px) */
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 0 1rem 3rem;
+  }
+
+  .navbar {
+    padding: 1rem 1.25rem;
+    top: 0.5rem;
+  }
+
+  .query-card {
+    padding: 1.5rem;
+  }
+
+  .result-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Teléfonos y Dispositivos Móviles (max-width: 768px) */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    padding: 1rem;
+    position: relative;
+    top: 0;
+  }
+
+  .brand-logo {
+    justify-content: center;
+  }
+
+  .nav-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nav-actions .btn-secondary,
+  .nav-actions .btn-primary {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-size: 0.775rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .categories-wrapper {
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .category-pill {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .query-card {
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .presets-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .preset-chip {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .modal-content {
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    max-height: 95vh;
+  }
+
+  .result-actions-footer {
+    flex-direction: column;
+  }
+
+  .result-actions-footer .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Pantallas Pequeñas Móviles (max-width: 480px) */
+@media (max-width: 480px) {
+  .brand-title {
+    font-size: 1.15rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .btn-analyze {
+    font-size: 0.9rem;
+    padding: 0.85rem;
+  }
 }
 
 /* Print View Styles */
