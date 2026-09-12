@@ -58,9 +58,25 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     }
   };
 
+  // Contador de consultas realizadas en la sesión para usuarios del Plan Starter
+  const [freeQueryCount, setFreeQueryCount] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('leyia_free_queries_used') || '0', 10);
+    } catch (e) {
+      return 0;
+    }
+  });
+
   // Ejecutar el análisis con el servicio de IA y desambiguación jerárquica
   const handleRunAnalysis = async (textToAnalyze = queryInput) => {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
+
+    // Verificar si el usuario está en Plan Starter (gratis) y ya usó su 1 consulta libre
+    if (!isProPlan && freeQueryCount >= 1) {
+      alert('🔒 Has consumido tu 1 Consulta Gratuita del Plan Starter.\n\nPara continuar realizando consultas ilimitadas con la IA y descargar minutas legales en PDF, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
+      if (onOpenPricing) onOpenPricing('pro');
+      return;
+    }
 
     setIsAnalyzing(true);
     setActiveResult(null);
@@ -74,6 +90,13 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
       if (result && result.title) {
         authService.saveCase(result);
+      }
+
+      // Si es plan gratis, incrementar el contador de uso gratuito
+      if (!isProPlan) {
+        const newCount = freeQueryCount + 1;
+        setFreeQueryCount(newCount);
+        localStorage.setItem('leyia_free_queries_used', newCount.toString());
       }
     } catch (err) {
       console.error('Error en ejecución de análisis:', err);
@@ -225,6 +248,43 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             <Cpu size={14} /> Motor NLU Desambiguador Activo
           </div>
         </div>
+
+        {!isProPlan && (
+          <div style={{
+            marginBottom: '0.85rem',
+            padding: '0.5rem 0.85rem',
+            borderRadius: '0.5rem',
+            background: freeQueryCount >= 1 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+            border: freeQueryCount >= 1 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+            fontSize: '0.8rem',
+            color: freeQueryCount >= 1 ? '#f87171' : '#f59e0b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.5rem'
+          }}>
+            <span>
+              {freeQueryCount >= 1 
+                ? '🔒 Has alcanzado el límite de 1 consulta gratis de tu Plan Starter.' 
+                : '🎁 Tienes 1 Consulta Legal Gratuita en tu Plan Starter.'}
+            </span>
+            <button
+              onClick={() => onOpenPricing && onOpenPricing('pro')}
+              style={{
+                background: 'var(--primary-accent)',
+                color: '#000',
+                border: 'none',
+                padding: '0.25rem 0.65rem',
+                borderRadius: '0.375rem',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                cursor: 'pointer'
+              }}
+            >
+              Ver Planes Ilimitados
+            </button>
+          </div>
+        )}
 
         <textarea
           className="query-input-box"
