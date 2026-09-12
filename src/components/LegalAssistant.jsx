@@ -138,31 +138,36 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
           Consulta cualquier hecho o situación laboral, penal, civil o de arriendo. LeyIA analiza tu caso con <strong>Google Gemini 3.6 Flash</strong> y genera minutas en PDF.
         </p>
 
-        {/* Banner de descarga de Aplicación APK Nativa para Android */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          padding: '0.6rem 1.2rem',
-          borderRadius: '0.75rem',
-          background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.15), rgba(15, 23, 42, 0.9))',
-          border: '1px solid rgba(217, 119, 6, 0.4)',
-          marginBottom: '2rem'
-        }}>
-          <Download size={18} color="var(--primary-accent)" />
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#fff' }}>Aplicación Nativa para Android (.APK)</div>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Instala LeyIA Chile directamente en tu smartphone Android</div>
+        {/* Banner de descarga de Aplicación APK Nativa para Android (solo en navegador web normal) */}
+        {typeof window !== 'undefined' && 
+         !window.Capacitor?.isNativePlatform?.() && 
+         !window.matchMedia('(display-mode: standalone)').matches && 
+         window.location.protocol !== 'file:' && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.6rem 1.2rem',
+            borderRadius: '0.75rem',
+            background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.15), rgba(15, 23, 42, 0.9))',
+            border: '1px solid rgba(217, 119, 6, 0.4)',
+            marginBottom: '2rem'
+          }}>
+            <Download size={18} color="var(--primary-accent)" />
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#fff' }}>Aplicación Nativa para Android (.APK)</div>
+              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Instala LeyIA Chile directamente en tu smartphone Android</div>
+            </div>
+            <a
+              href="/leyia-chile.apk"
+              download="LeyIA-Chile.apk"
+              className="btn-primary"
+              style={{ fontSize: '0.775rem', padding: '0.4rem 0.85rem', textDecoration: 'none', marginLeft: '0.5rem' }}
+            >
+              Descargar APK (Android)
+            </a>
           </div>
-          <a
-            href="/leyia-chile.apk"
-            download="LeyIA-Chile.apk"
-            className="btn-primary"
-            style={{ fontSize: '0.775rem', padding: '0.4rem 0.85rem', textDecoration: 'none', marginLeft: '0.5rem' }}
-          >
-            Descargar APK (Android)
-          </a>
-        </div>
+        )}
 
         {/* MÉTREDAS E INDICADORES DE CONFIANZA */}
         <div style={{

@@ -5,7 +5,21 @@ export function Navbar({ user, userPlan, onOpenPricing, onOpenAuth, onOpenDashbo
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [canInstall, setCanInstall] = useState(false);
 
+  const [isNativeApp, setIsNativeApp] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
   useEffect(() => {
+    // Detectar si está corriendo dentro de Capacitor / APK Nativa
+    const isCapacitor = window.Capacitor?.isNativePlatform?.() || 
+                        window.location.href.includes('capacitor://') || 
+                        window.location.protocol === 'file:';
+    setIsNativeApp(!!isCapacitor);
+
+    // Detectar si la Web App PWA ya está instalada / ejecutándose standalone
+    const isPwaInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+    setIsStandalone(isPwaInstalled);
+
     const handleBeforeInstall = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -52,26 +66,31 @@ export function Navbar({ user, userPlan, onOpenPricing, onOpenAuth, onOpenDashbo
       </a>
 
       <div className="nav-actions">
-        {/* Botón Descargar APK Android */}
-        <a 
-          href="/leyia-chile.apk"
-          download="LeyIA-Chile.apk"
-          className="btn-secondary"
-          title="Descargar paquete APK Nativo para Android"
-          style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', textDecoration: 'none', color: 'var(--text-main)', borderColor: 'rgba(245, 158, 11, 0.4)' }}
-        >
-          <Download size={14} color="var(--primary-accent)" /> Descargar APK Android
-        </a>
+        {/* Solo mostrar botones de descarga si NO está corriendo dentro de la APK nativa ni PWA instalada */}
+        {!isNativeApp && !isStandalone && (
+          <>
+            {/* Botón Descargar APK Android */}
+            <a 
+              href="/leyia-chile.apk"
+              download="LeyIA-Chile.apk"
+              className="btn-secondary"
+              title="Descargar paquete APK Nativo para Android"
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', textDecoration: 'none', color: 'var(--text-main)', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+            >
+              <Download size={14} color="var(--primary-accent)" /> Descargar APK Android
+            </a>
 
-        {/* Botón Instalar PWA */}
-        <button 
-          onClick={handleInstallApp}
-          className="btn-secondary"
-          title="Instalar LeyIA Chile en pantalla de inicio"
-          style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-        >
-          Instalar Web App
-        </button>
+            {/* Botón Instalar PWA */}
+            <button 
+              onClick={handleInstallApp}
+              className="btn-secondary"
+              title="Instalar LeyIA Chile en pantalla de inicio"
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
+            >
+              Instalar Web App
+            </button>
+          </>
+        )}
 
         {/* Badge del Plan Actual */}
         {getPlanBadge()}
