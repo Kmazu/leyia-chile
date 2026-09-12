@@ -96,7 +96,7 @@ export function SiteFooter({ onOpenPricing }) {
             Contacto & Soporte
           </a>
           <a
-            href="https://wa.me/56912345678?text=Hola%2C%20necesito%20información%20sobre%20LeyIA%20Chile"
+            href="https://wa.me/56965025133?text=Hola%2C%20necesito%20información%20sobre%20LeyIA%20Chile"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-nav-link-a footer-whatsapp-link"
