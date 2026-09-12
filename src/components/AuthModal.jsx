@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, UserCheck, ShieldCheck, Globe, AlertCircle, User } from 'lucide-react';
+import { X, Mail, Lock, UserCheck, ShieldCheck, Globe, AlertCircle, User, CheckCircle2 } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
@@ -85,7 +85,24 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           </div>
         )}
 
-        {/* BOTÓN GOOGLE */}
+        {/* BANNER INFORMATIVO REGISTRO INSTANTÁNEO */}
+        <div style={{
+          padding: '0.65rem 0.85rem',
+          background: 'rgba(59, 130, 246, 0.12)',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          borderRadius: '0.5rem',
+          color: '#60a5fa',
+          fontSize: '0.78rem',
+          marginBottom: '1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <CheckCircle2 size={16} style={{ flexShrink: 0, color: '#60a5fa' }} />
+          <span><strong>Acceso Inmediato:</strong> Sin código ni demoras por correo. Tu cuenta queda activada al instante.</span>
+        </div>
+
+        {/* BOTÓN GOOGLE NATIVO */}
         <button
           type="button"
           onClick={handleGoogleAuth}
@@ -107,7 +124,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
           }}
         >
-          <Globe size={18} color="#ea4335" /> Continuar con Cuenta Google
+          <Globe size={18} color="#ea4335" /> Iniciar Sesión con Cuenta Google del Teléfono
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', margin: '1rem 0', color: 'var(--text-dim)', fontSize: '0.75rem' }}>
