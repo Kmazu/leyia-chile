@@ -1,26 +1,43 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, UserCheck, ShieldCheck, Globe } from 'lucide-react';
+import { X, Mail, Lock, UserCheck, ShieldCheck, Globe, AlertCircle, User } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!isOpen) return null;
 
   const handleGoogleAuth = () => {
-    const user = authService.loginWithGoogle();
-    onAuthSuccess(user);
-    onClose();
+    try {
+      setErrorMsg('');
+      const user = authService.loginWithGoogle();
+      onAuthSuccess(user);
+      onClose();
+    } catch (err) {
+      setErrorMsg(err.message || 'Error al conectar con Google.');
+    }
   };
 
   const handleEmailAuth = (e) => {
     e.preventDefault();
-    if (!email) return;
-    const user = authService.loginWithEmail(email, password);
-    onAuthSuccess(user);
-    onClose();
+    setErrorMsg('');
+
+    try {
+      let user;
+      if (isRegister) {
+        user = authService.registerWithEmail(email, password, name);
+      } else {
+        user = authService.loginWithEmail(email, password);
+      }
+      onAuthSuccess(user);
+      onClose();
+    } catch (err) {
+      setErrorMsg(err.message || 'Ocurrió un error en la autenticación.');
+    }
   };
 
   return (
@@ -30,7 +47,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           <X size={18} />
         </button>
 
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
           <div style={{
             fontSize: '0.75rem',
             fontWeight: 700,
@@ -48,6 +65,25 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             Accede a tu historial de consultas y seguimiento de documentos.
           </p>
         </div>
+
+        {/* MENSAJE DE ERROR */}
+        {errorMsg && (
+          <div style={{
+            padding: '0.65rem 0.85rem',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            borderRadius: '0.5rem',
+            color: '#f87171',
+            fontSize: '0.8rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
         {/* BOTÓN GOOGLE */}
         <button
@@ -82,7 +118,21 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
         {/* FORMULARIO CORREO */}
         <form onSubmit={handleEmailAuth}>
-          <div className="form-group">
+          {isRegister && (
+            <div className="form-group" style={{ marginBottom: '0.85rem' }}>
+              <label className="form-label">Nombre y Apellido</label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="form-input"
+                placeholder="Ej: Juan Pérez"
+              />
+            </div>
+          )}
+
+          <div className="form-group" style={{ marginBottom: '0.85rem' }}>
             <label className="form-label">Correo Electrónico</label>
             <input
               type="email"
@@ -94,27 +144,31 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
             <label className="form-label">Contraseña</label>
             <input
               type="password"
               required
+              minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-input"
-              placeholder="••••••••"
+              placeholder="Mínimo 6 caracteres"
             />
           </div>
 
           <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-            {isRegister ? 'Crear Cuenta y Entrar' : 'Ingresar a mi Cuenta'}
+            {isRegister ? 'Crear Mi Cuenta' : 'Ingresar a mi Cuenta'}
           </button>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {isRegister ? '¿Ya tienes una cuenta? ' : '¿No tienes cuenta aún? '}
           <span
-            onClick={() => setIsRegister(!isRegister)}
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setErrorMsg('');
+            }}
             style={{ color: 'var(--primary-accent)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
           >
             {isRegister ? 'Inicia Sesión' : 'Regístrate'}
