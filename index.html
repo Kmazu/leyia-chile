@@ -71,25 +71,17 @@
     <script type="module" src="/src/main.jsx"></script>
 
     <!-- Google Analytics 4 — LeyIA Chile (montielglenn@gmail.com) -->
-    <!-- INSTRUCCIÓN: Entra a https://analytics.google.com → Admin → Flujos de datos → Web → copia el Measurement ID (G-XXXXXXXXXX) y reemplaza LEYIA_GA4_ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RJ2GKN8QX5"></script>
     <script>
-      // Auto-configura GA4 cuando el Measurement ID esté disponible
-      window.LEYIA_GA4_ID = 'PENDING'; // <-- reemplaza con tu G-XXXXXXXXXX
-      if (window.LEYIA_GA4_ID !== 'PENDING') {
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.LEYIA_GA4_ID;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', window.LEYIA_GA4_ID, {
-          'page_location': window.location.href,
-          'page_title': document.title,
-          'send_page_view': true
-        });
-        window.gtag = gtag;
-      }
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-RJ2GKN8QX5', {
+        'page_location': window.location.href,
+        'page_title': document.title,
+        'send_page_view': true
+      });
+      window.gtag = gtag;
     </script>
   </body>
 </html>
