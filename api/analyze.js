@@ -18,21 +18,7 @@ export default async function handler(req, res) {
   const DEFAULT_KEY = typeof Buffer !== 'undefined' ? Buffer.from('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c=', 'base64').toString('utf-8') : atob('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c=');
   const rawGemini = process.env.GEMINI_API_KEY;
   const rawVite = process.env.VITE_GEMINI_API_KEY;
-  const apiKey = (rawGemini && rawGemini.trim()) || (rawVite && rawVite.trim()) || DEFAULT_KEY;
-
-  if (!apiKey) {
-    return res.status(200).json({
-      status: 'error',
-      message: 'La variable GEMINI_API_KEY existe en Vercel pero su valor está VACÍO (0 caracteres) o invalido.',
-      needApiKey: true,
-      debugDetails: {
-        geminiKeyPresent: 'GEMINI_API_KEY' in process.env,
-        geminiKeyLength: rawGemini ? rawGemini.length : 0,
-        viteKeyPresent: 'VITE_GEMINI_API_KEY' in process.env,
-        viteKeyLength: rawVite ? rawVite.length : 0
-      }
-    });
-  }
+  const candidateKeys = Array.from(new Set([DEFAULT_KEY, rawGemini, rawVite].map(k => k && k.trim()))).filter(Boolean);
 
   try {
     const systemPrompt = `Eres "LeyIA Chile", un jurista de máximo nivel técnico y experto en el ordenamiento jurídico de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos, Código Procesal Penal).
@@ -79,32 +65,34 @@ Reglas estrictas de razonamiento para Chile:
     let lastErrorText = '';
     let selectedModel = '';
 
-    for (const modelName of candidateModels) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
+    keyLoop: for (const keyToTry of candidateKeys) {
+      for (const modelName of candidateModels) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-        let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [
-              { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
-            ]
-          })
-        });
-        clearTimeout(timeoutId);
+          let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${keyToTry}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [
+                { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${query}"` }] }
+              ]
+            })
+          });
+          clearTimeout(timeoutId);
 
-        if (res.ok) {
-          response = res;
-          selectedModel = modelName;
-          break;
-        } else {
-          lastErrorText = await res.text();
+          if (res.ok) {
+            response = res;
+            selectedModel = modelName;
+            break keyLoop;
+          } else {
+            lastErrorText = await res.text();
+          }
+        } catch (e) {
+          lastErrorText = e.message;
         }
-      } catch (e) {
-        lastErrorText = e.message;
       }
     }
 
