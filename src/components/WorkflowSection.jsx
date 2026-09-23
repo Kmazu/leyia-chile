@@ -11,7 +11,7 @@ export function WorkflowSection() {
     },
     {
       num: '02',
-      title: 'Análisis Gemini 3.6 Flash',
+      title: 'Análisis IA v3.6 Especializado',
       desc: 'El motor NLU analiza los hechos, identifica el nivel de riesgo, cita los artículos exactos de las leyes chilenas y elabora la estrategia.',
       icon: <Cpu size={24} color="#60a5fa" />
     },

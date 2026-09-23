@@ -158,7 +158,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
           margin: '0 auto 1.5rem',
           lineHeight: 1.6
         }}>
-          Consulta cualquier hecho o situación laboral, penal, civil o de arriendo. LeyIA analiza tu caso con <strong>Google Gemini 3.6 Flash</strong> y genera minutas en PDF.
+          Consulta cualquier hecho o situación laboral, penal, civil o de arriendo. LeyIA analiza tu caso con <strong>Motor Jurídico IA v3.6</strong> y genera minutas en PDF.
         </p>
 
         {/* Banner de descarga de Aplicación APK Nativa para Android (solo en navegador web normal) */}
@@ -210,7 +210,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
           </div>
           <div>
             <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399' }}>99.9%</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Precisión NLU Gemini</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Precisión NLU Legal</div>
           </div>
           <div>
             <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#60a5fa' }}>8 Plantillas</div>
@@ -356,7 +356,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             Generando Diagnóstico Jurídico y Evaluación de Riesgos...
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: '600px', margin: '0 auto' }}>
-            LeyIA Chile analiza los Códigos Civil, Penal, del Trabajo y Leyes Especiales con Google Gemini.
+            LeyIA Chile analiza los Códigos Civil, Penal, del Trabajo y Leyes Especiales con IA Jurídica Especializada.
           </p>
         </div>
       )}

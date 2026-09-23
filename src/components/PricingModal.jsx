@@ -31,7 +31,7 @@ export function PricingModal({ isOpen, onClose, userPlan, onSelectPlanToCheckout
             Selecciona el Nivel de Cobertura Jurídica
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Consultas legales ilimitadas con la API de Gemini 3.6 Flash y repositorio de documentos en PDF.
+            Consultas legales ilimitadas con el Motor Jurídico IA v3.6 y repositorio de documentos en PDF.
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export function PricingModal({ isOpen, onClose, userPlan, onSelectPlanToCheckout
                   <Check size={14} color="#34d399" /> <strong>Consultas ILIMITADAS</strong>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Check size={14} color="#34d399" /> Análisis con Gemini 3.6 Flash
+                  <Check size={14} color="#34d399" /> Análisis con Motor IA v3.6
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Check size={14} color="#34d399" /> Historial guardado de casos

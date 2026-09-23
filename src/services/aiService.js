@@ -1,6 +1,6 @@
 /**
  * Servicio de Inteligencia Artificial & Razonamiento Jurídico para LeyIA Chile
- * Integra Google Gemini en vivo con un Motor Jurídico Dinámico y Personalizado para Chile.
+ * Motor Jurídico Dinámico y Personalizado para Chile.
  */
 
 function generateChileanLegalFallback(query, category) {
@@ -387,8 +387,8 @@ export const aiService = {
         if (result.status === 'success' && result.data) {
           return {
             ...result.data,
-            aiConfidence: '99.9% (Google Gemini Live API)',
-            reasoningEngine: result.engine || 'Google Gemini 3.5 Flash Lite'
+            aiConfidence: '99.9% (Motor IA LeyIA Chile)',
+            reasoningEngine: result.engine || 'Motor Legal IA v3.6'
           };
         }
       }
@@ -429,8 +429,8 @@ export const aiService = {
               const parsed = JSON.parse(cleanedText);
               return {
                 ...parsed,
-                aiConfidence: '99.9% (Google Gemini Direct Live)',
-                reasoningEngine: `Google Gemini (${modelName})`
+                aiConfidence: '99.9% (Motor Jurídico LeyIA Chile)',
+                reasoningEngine: `Motor Legal IA (v3.6)`
               };
             }
           }

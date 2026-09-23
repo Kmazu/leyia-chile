@@ -23,7 +23,7 @@ export function FaqSection() {
     },
     {
       question: '¿Cuál es la diferencia entre el Plan Pro ($5.990) y el Plan Plus ($9.990)?',
-      answer: 'El Plan Pro ($5.990/mes) te otorga consultas ILIMITADAS en tiempo real con la IA de Gemini 3.6 Flash e historial de casos. El Plan Plus ($9.990/mes) incluye todo lo anterior MÁS el acceso exclusivo al Repositorio de Documentos Legales Rellenables con exportación e impresión en PDF notarial.'
+      answer: 'El Plan Pro ($5.990/mes) te otorga consultas ILIMITADAS en tiempo real con el Motor Jurídico IA v3.6 e historial de casos. El Plan Plus ($9.990/mes) incluye todo lo anterior MÁS el acceso exclusivo al Repositorio de Documentos Legales Rellenables con exportación e impresión en PDF notarial.'
     }
   ];
 

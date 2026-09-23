@@ -476,7 +476,7 @@ export function UserDashboardModal({ isOpen, onClose, user, onLogout, onOpenPric
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                 {user.plan === 'plus' 
-                  ? 'Tienes acceso ILIMITADO a consultas con Gemini 3.6 Flash y generación de expedientes y documentos jurídicos en PDF.'
+                  ? 'Tienes acceso ILIMITADO a consultas con el Motor Jurídico IA y generación de expedientes y documentos jurídicos en PDF.'
                   : user.plan === 'pro'
                   ? 'Tienes acceso ILIMITADO a consultas jurídicas con IA en tiempo real. Actualiza al Plan Plus para desbloquear documentos rellenables.'
                   : 'Estás usando la versión básica. Actualiza al Plan Pro ($5.990) o Plan Plus ($9.990) para potenciar tus consultas.'}

@@ -137,7 +137,7 @@ export function HeroSection({ onScrollToConsulta, onOpenPricing }) {
           <span className="float-icon">⚡</span>
           <div>
             <div className="float-title">Respuesta Inmediata</div>
-            <div className="float-sub">Gemini Flash AI</div>
+            <div className="float-sub">Motor Legal AI v3.6</div>
           </div>
         </div>
       </div>
