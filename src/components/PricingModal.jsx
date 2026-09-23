@@ -191,7 +191,7 @@ export function PricingModal({ isOpen, onClose, userPlan, onSelectPlanToCheckout
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-          💳 Pagos vía Transferencia Bancaria (RUT 16.260.747-2) o Tarjetas / Webpay Plus. Cancela cuando lo requieras.
+          🔒 Pagos 100% seguros procesados exclusivamente por Flow.cl (Tarjetas, Redcompra, MACH, Servipag y Transferencias).
         </div>
 
       </div>

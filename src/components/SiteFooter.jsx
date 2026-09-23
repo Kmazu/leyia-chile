@@ -146,10 +146,8 @@ export function SiteFooter({ onOpenPricing }) {
           © {currentYear} LeyIA Chile. Protección de datos conforme a la Ley N° 19.628.
         </p>
         <div className="footer-payments">
-          <span>Pagos seguros vía:</span>
-          <span className="payment-badge">Webpay</span>
-          <span className="payment-badge">Transferencia</span>
-          <span className="payment-badge">MercadoPago</span>
+          <span>Pagos seguros procesados por:</span>
+          <span className="payment-badge" style={{ background: '#f59e0b', color: '#000', fontWeight: 800 }}>Flow.cl</span>
         </div>
       </div>
     </footer>
