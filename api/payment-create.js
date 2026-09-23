@@ -1,6 +1,3 @@
-import pkg from 'transbank-sdk';
-const { WebpayPlus, Options, IntegrationApiKeys, IntegrationCommerceCodes, Environment } = pkg;
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ status: 'error', message: 'Método no permitido' });
@@ -25,29 +22,51 @@ export default async function handler(req, res) {
     const baseUrl = returnUrlOrigin || 'https://leyia-chile.vercel.app';
     const returnUrl = `${baseUrl}/api/payment-commit`;
 
-    const tx = new WebpayPlus.Transaction(
-      new Options(
-        IntegrationCommerceCodes.WEBPAY_PLUS,
-        IntegrationApiKeys.WEBPAY_PLUS,
-        Environment.Integration
-      )
-    );
+    // Usamos el entorno de pruebas de Transbank (Mall / WebpayPlus Oficial de Integración)
+    const commerceCode = process.env.WEBPAY_COMMERCE_CODE || '597055555532';
+    const apiKey = process.env.WEBPAY_API_KEY || '579B532A7440BB7F5D4806568A40890EC799A5239A5084FEF6A5406E65C995B4';
+    const tbkUrl = process.env.WEBPAY_ENVIRONMENT === 'production'
+      ? 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions'
+      : 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
-    const createResponse = await tx.create(buyOrder, sessionId, amount, returnUrl);
-
-    return res.status(200).json({
-      status: 'success',
-      url: createResponse.url,
-      token: createResponse.token,
-      buyOrder,
-      amount
+    const tbkResponse = await fetch(tbkUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Tbk-Api-Key-Id': commerceCode,
+        'Tbk-Api-Key-Secret': apiKey
+      },
+      body: JSON.stringify({
+        buy_order: buyOrder,
+        session_id: sessionId,
+        amount: amount,
+        return_url: returnUrl
+      })
     });
+
+    const tbkData = await tbkResponse.json();
+
+    if (tbkResponse.ok && tbkData.token && tbkData.url) {
+      return res.status(200).json({
+        status: 'success',
+        url: tbkData.url,
+        token: tbkData.token,
+        buyOrder,
+        amount
+      });
+    } else {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Respuesta no válida de Transbank Webpay',
+        details: tbkData
+      });
+    }
   } catch (error) {
     console.error('Error iniciando transacción Webpay Plus:', error);
     return res.status(500).json({
       status: 'error',
-      message: 'Error interno al conectar con Transbank Webpay',
-      details: error.message || String(error)
+      message: 'Error de conexión con Transbank',
+      details: error.message
     });
   }
 }
