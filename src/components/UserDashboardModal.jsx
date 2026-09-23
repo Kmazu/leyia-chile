@@ -100,13 +100,26 @@ export function UserDashboardModal({ isOpen, onClose, user, onLogout, onOpenPric
           </div>
 
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 800 }}>
                 {user.name}
               </h3>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 (@{user.username || user.email.split('@')[0]})
               </span>
+              {user.isSuperUser && (
+                <span style={{
+                  fontSize: '0.7rem',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  letterSpacing: '0.05em'
+                }}>
+                  👑 SUPERUSUARIO
+                </span>
+              )}
             </div>
             <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
               {user.email} {user.emailConfirmed ? '✓ Verificado' : '• Pendiente Verificación'}
@@ -118,13 +131,13 @@ export function UserDashboardModal({ isOpen, onClose, user, onLogout, onOpenPric
               fontSize: '0.75rem',
               padding: '0.3rem 0.75rem',
               borderRadius: '0.375rem',
-              background: user.plan === 'plus' ? 'rgba(217, 119, 6, 0.2)' : user.plan === 'pro' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-              color: user.plan === 'plus' ? '#f59e0b' : user.plan === 'pro' ? '#60a5fa' : 'var(--text-muted)',
-              border: '1px solid var(--border-color)',
+              background: user.isSuperUser ? 'rgba(16, 185, 129, 0.2)' : user.plan === 'plus' ? 'rgba(217, 119, 6, 0.2)' : user.plan === 'pro' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+              color: user.isSuperUser ? '#34d399' : user.plan === 'plus' ? '#f59e0b' : user.plan === 'pro' ? '#60a5fa' : 'var(--text-muted)',
+              border: user.isSuperUser ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-color)',
               fontWeight: 700,
               textTransform: 'uppercase'
             }}>
-              {planLabel}
+              {user.isSuperUser ? '⚡ Superusuario Ilimitado' : planLabel}
             </span>
           </div>
         </div>

@@ -29,6 +29,15 @@ export const authService = {
         console.info('Profile table standby fallback');
       }
 
+      const nameStr = (profile?.nombre || session.user.user_metadata?.full_name || session.user.user_metadata?.nombre || session.user.email?.split('@')[0] || '').toLowerCase();
+      const usernameStr = (profile?.username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || '').toLowerCase();
+      const emailStr = (session.user.email || '').toLowerCase();
+
+      const isSuperUser = nameStr.includes('glenn') || 
+                         usernameStr.includes('montielglenn') || 
+                         usernameStr.includes('glenn') || 
+                         emailStr.includes('montielglenn');
+
       const userObject = {
         id: session.user.id,
         email: session.user.email,
@@ -36,7 +45,8 @@ export const authService = {
         username: profile?.username || session.user.user_metadata?.username || session.user.email.split('@')[0],
         avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || null,
         provider: session.user.app_metadata?.provider || 'email',
-        plan: profile?.plan || session.user.user_metadata?.plan || 'starter',
+        plan: isSuperUser ? 'plus' : (profile?.plan || session.user.user_metadata?.plan || 'starter'),
+        isSuperUser: isSuperUser,
         emailConfirmed: !!session.user.email_confirmed_at
       };
 
@@ -45,6 +55,19 @@ export const authService = {
     } catch (e) {
       console.warn('Supabase session fetch warning, using local session:', e);
       const local = localStorage.getItem(STORAGE_KEY_USER_SESSION);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          const nameStr = (parsed.name || '').toLowerCase();
+          const usernameStr = (parsed.username || '').toLowerCase();
+          const emailStr = (parsed.email || '').toLowerCase();
+          if (nameStr.includes('glenn') || usernameStr.includes('montielglenn') || emailStr.includes('montielglenn')) {
+            parsed.plan = 'plus';
+            parsed.isSuperUser = true;
+          }
+          return parsed;
+        } catch (err) {}
+      }
       return local ? JSON.parse(local) : null;
     }
   },
@@ -90,13 +113,16 @@ export const authService = {
       throw new Error(error.message);
     }
 
+    const isSuperUser = cleanEmail.includes('glenn') || cleanUsername.includes('montielglenn') || fullName.toLowerCase().includes('glenn');
+
     const newUser = {
       id: data.user?.id || 'usr_' + Date.now(),
       email: cleanEmail,
       username: cleanUsername,
       name: fullName.trim() || cleanEmail.split('@')[0],
       provider: 'email',
-      plan: 'starter',
+      plan: isSuperUser ? 'plus' : 'starter',
+      isSuperUser: isSuperUser,
       emailConfirmed: false
     };
 
