@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     const baseUrl = returnUrlOrigin || 'https://leyia-chile.vercel.app';
     const commerceOrder = `LEYIA-${Date.now()}`;
-    const emailToUse = userEmail && userEmail.includes('@') ? userEmail : 'cliente@leyia.cl';
+    const emailToUse = (userEmail && userEmail.includes('@') && !userEmail.endsWith('@leyia.cl')) ? userEmail : 'cliente@gmail.com';
 
     const params = {
       apiKey: apiKey,
