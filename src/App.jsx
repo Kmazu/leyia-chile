@@ -33,20 +33,28 @@ export function App() {
   const consultaRef = useRef(null);
 
   useEffect(() => {
-    const u = authService.getUser();
-    if (u) {
-      setUser(u);
-      setUserPlan(u.plan || 'starter');
-    }
-    setSavedCases(authService.getSavedCases());
-    setEmittedDocs(authService.getEmittedDocs());
+    const initSession = async () => {
+      const u = await authService.getUserSession();
+      if (u) {
+        setUser(u);
+        setUserPlan(u.plan || 'starter');
+      }
+      const cases = await authService.getSavedCases();
+      setSavedCases(cases);
+      const docs = await authService.getEmittedDocs();
+      setEmittedDocs(docs);
+    };
+
+    initSession();
   }, []);
 
-  const handleAuthSuccess = (loggedUser) => {
+  const handleAuthSuccess = async (loggedUser) => {
     setUser(loggedUser);
     setUserPlan(loggedUser.plan || 'starter');
-    setSavedCases(authService.getSavedCases());
-    setEmittedDocs(authService.getEmittedDocs());
+    const cases = await authService.getSavedCases();
+    setSavedCases(cases);
+    const docs = await authService.getEmittedDocs();
+    setEmittedDocs(docs);
   };
 
   const handleLogout = () => {
