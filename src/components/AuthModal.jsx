@@ -22,9 +22,12 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       setSuccessMsg('');
       setIsLoading(true);
       await authService.loginWithGoogle();
-      // Google OAuth iniciará redirección o popup
     } catch (err) {
-      setErrorMsg(err.message || 'Error al conectar con Google OAuth.');
+      if (err.message && err.message.includes('provider is not enabled')) {
+        setErrorMsg('El inicio de sesión con Google requiere activar el proveedor Google OAuth en la consola de Supabase. Puedes ingresar registrándote con tu Correo y Contraseña abajo.');
+      } else {
+        setErrorMsg(err.message || 'Error al conectar con Google OAuth.');
+      }
       setIsLoading(false);
     }
   };
@@ -54,25 +57,29 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     try {
       if (isRegister) {
         if (password !== confirmPassword) {
-          throw new Error('Las contraseñas no coinciden. Por favor verifica los campos.');
+          setIsLoading(false);
+          setErrorMsg('Las contraseñas no coinciden. Por favor verifica los campos.');
+          return;
         }
 
         const result = await authService.registerWithEmail(email, password, username, name);
+        setIsLoading(false);
+
         if (result.requiresVerification) {
-          setSuccessMsg('¡Cuenta creada exitosamente! Te hemos enviado un correo de verificación. Por favor confirma tu email.');
-          setIsLoading(false);
+          setSuccessMsg('¡Cuenta creada exitosamente! Te hemos enviado un correo de verificación. Por favor confirma tu email o ingresa con tus credenciales.');
         } else {
           onAuthSuccess(result.user);
           onClose();
         }
       } else {
         const user = await authService.loginWithEmail(email, password);
+        setIsLoading(false);
         onAuthSuccess(user);
         onClose();
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Ocurrió un error al procesar tu solicitud.');
       setIsLoading(false);
+      setErrorMsg(err.message || 'Ocurrió un error al procesar tu solicitud.');
     }
   };
 
@@ -92,7 +99,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             letterSpacing: '0.05em',
             marginBottom: '0.25rem'
           }}>
-            AUTENTICACIÓN SEGURA SUPABASE — LEYIA CHILE
+            AUTENTICACIÓN SEGURA — LEYIA CHILE
           </div>
           <h3 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 800 }}>
             {isForgotPassword ? 'Recuperar Contraseña' : (isRegister ? 'Crear Cuenta de Usuario' : 'Iniciar Sesión en LeyIA')}
