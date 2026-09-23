@@ -17,17 +17,21 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   if (!isOpen) return null;
 
   const handleGoogleAuth = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
+    setIsLoading(true);
+
     try {
-      setErrorMsg('');
-      setSuccessMsg('');
-      setIsLoading(true);
       await authService.loginWithGoogle();
     } catch (err) {
-      if (err.message && err.message.includes('provider is not enabled')) {
-        setErrorMsg('El inicio de sesión con Google requiere activar el proveedor Google OAuth en la consola de Supabase. Puedes ingresar registrándote con tu Correo y Contraseña abajo.');
+      console.warn('Google auth error caught:', err);
+      const msg = err?.message || String(err);
+      if (msg.includes('provider is not enabled') || msg.includes('validation_failed')) {
+        setErrorMsg('Google OAuth no está activado en la consola de Supabase. Puedes ingresar registrándote con tu Correo y Contraseña abajo.');
       } else {
-        setErrorMsg(err.message || 'Error al conectar con Google OAuth.');
+        setErrorMsg(msg || 'Error al conectar con Google OAuth.');
       }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -41,9 +45,9 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     try {
       await authService.resetPassword(email);
       setSuccessMsg('Te hemos enviado un correo para restablecer tu contraseña. Revisa tu bandeja de entrada.');
-      setIsLoading(false);
     } catch (err) {
       setErrorMsg(err.message || 'No se pudo enviar el correo de recuperación.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -57,29 +61,30 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     try {
       if (isRegister) {
         if (password !== confirmPassword) {
-          setIsLoading(false);
           setErrorMsg('Las contraseñas no coinciden. Por favor verifica los campos.');
+          setIsLoading(false);
           return;
         }
 
         const result = await authService.registerWithEmail(email, password, username, name);
-        setIsLoading(false);
-
-        if (result.requiresVerification) {
-          setSuccessMsg('¡Cuenta creada exitosamente! Te hemos enviado un correo de verificación. Por favor confirma tu email o ingresa con tus credenciales.');
-        } else {
+        if (result && result.requiresVerification) {
+          setSuccessMsg('¡Cuenta creada exitosamente! Revisa tu bandeja para confirmar tu correo.');
+        } else if (result && result.user) {
           onAuthSuccess(result.user);
           onClose();
         }
       } else {
         const user = await authService.loginWithEmail(email, password);
-        setIsLoading(false);
-        onAuthSuccess(user);
-        onClose();
+        if (user) {
+          onAuthSuccess(user);
+          onClose();
+        }
       }
     } catch (err) {
-      setIsLoading(false);
+      console.error('Email Auth Error:', err);
       setErrorMsg(err.message || 'Ocurrió un error al procesar tu solicitud.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
