@@ -7,3 +7,5 @@ android/build
 android/app/build
 android/.gradle
 
+.vercel
+.env*
