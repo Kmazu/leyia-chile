@@ -26,21 +26,27 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess })
     setIsProcessing(true);
     setErrorMessage('');
 
-    if (paymentMethod === 'webpay') {
+    if (paymentMethod === 'webpay' || paymentMethod === 'flow') {
       try {
-        const response = await fetch('/api/payment-create', {
+        const endpoint = paymentMethod === 'flow' ? '/api/flow-create' : '/api/payment-create';
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             plan: targetPlan,
-            userEmail: 'usuario@leyia.cl',
+            userEmail: 'cliente@leyia.cl',
             returnUrlOrigin: window.location.origin
           })
         });
 
         const data = await response.json();
 
-        if (data.status === 'success' && data.url && data.token) {
+        if (data.status === 'success' && data.url) {
+          if (paymentMethod === 'flow') {
+            window.location.href = data.url;
+            return;
+          }
+
           // Detectar si se está ejecutando dentro de la App Móvil Capacitor Nativa
           if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
@@ -66,7 +72,7 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess })
             form.submit();
           }
         } else {
-          setErrorMessage(data.message || 'No se pudo iniciar la transacción con Transbank.');
+          setErrorMessage(data.message || 'No se pudo iniciar la transacción.');
           setIsProcessing(false);
         }
       } catch (err) {
@@ -142,12 +148,34 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess })
             )}
 
             {/* Selector de Método de Pago */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('flow')}
+                style={{
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '0.5rem',
+                  border: paymentMethod === 'flow' ? '2px solid var(--primary-accent)' : '1px solid var(--border-color)',
+                  background: paymentMethod === 'flow' ? 'rgba(217, 119, 6, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  fontWeight: 600,
+                  fontSize: '0.8rem'
+                }}
+              >
+                <CreditCard size={16} color={paymentMethod === 'flow' ? '#f59e0b' : 'var(--text-muted)'} />
+                Flow.cl
+              </button>
+
               <button
                 type="button"
                 onClick={() => setPaymentMethod('webpay')}
                 style={{
-                  padding: '0.85rem',
+                  padding: '0.75rem 0.5rem',
                   borderRadius: '0.5rem',
                   border: paymentMethod === 'webpay' ? '2px solid var(--primary-accent)' : '1px solid var(--border-color)',
                   background: paymentMethod === 'webpay' ? 'rgba(217, 119, 6, 0.1)' : 'rgba(255, 255, 255, 0.03)',
@@ -155,20 +183,21 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess })
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.6rem',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
                   fontWeight: 600,
-                  fontSize: '0.85rem'
+                  fontSize: '0.8rem'
                 }}
               >
-                <CreditCard size={18} color={paymentMethod === 'webpay' ? '#f59e0b' : 'var(--text-muted)'} />
-                Webpay Plus / Tarjeta
+                <CreditCard size={16} color={paymentMethod === 'webpay' ? '#f59e0b' : 'var(--text-muted)'} />
+                Webpay
               </button>
 
               <button
                 type="button"
                 onClick={() => setPaymentMethod('transfer')}
                 style={{
-                  padding: '0.85rem',
+                  padding: '0.75rem 0.5rem',
                   borderRadius: '0.5rem',
                   border: paymentMethod === 'transfer' ? '2px solid var(--primary-accent)' : '1px solid var(--border-color)',
                   background: paymentMethod === 'transfer' ? 'rgba(217, 119, 6, 0.1)' : 'rgba(255, 255, 255, 0.03)',
@@ -176,15 +205,50 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess })
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.6rem',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
                   fontWeight: 600,
-                  fontSize: '0.85rem'
+                  fontSize: '0.8rem'
                 }}
               >
-                <Building2 size={18} color={paymentMethod === 'transfer' ? '#f59e0b' : 'var(--text-muted)'} />
-                Transferencia Directa
+                <Building2 size={16} color={paymentMethod === 'transfer' ? '#f59e0b' : 'var(--text-muted)'} />
+                Transferencia
               </button>
             </div>
+
+            {/* OPCIÓN FLOW.CL */}
+            {paymentMethod === 'flow' && (
+              <div style={{
+                background: '#1e293b',
+                border: '1px solid var(--border-color)',
+                borderRadius: '0.5rem',
+                padding: '1.25rem',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <ShieldCheck size={28} color="#f59e0b" />
+                  <div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>
+                      Pasarela Oficial Flow.cl Chile
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      Paga con Webpay, Servipag, Mach, Chek, Klap, MercadoPago o Crypto.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  fontSize: '0.8rem',
+                  background: 'rgba(0,0,0,0.25)',
+                  padding: '0.75rem',
+                  borderRadius: '0.375rem',
+                  color: 'var(--text-muted)',
+                  borderLeft: '3px solid var(--primary-accent)'
+                }}>
+                  Serás redirigido al portal seguro de Flow para completar tu transacción de forma cifrada.
+                </div>
+              </div>
+            )}
 
             {/* OPCIÓN 1: WEBPAY Y TARJETAS */}
             {paymentMethod === 'webpay' && (
