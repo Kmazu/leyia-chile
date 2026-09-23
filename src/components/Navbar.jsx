@@ -64,34 +64,7 @@ export function Navbar({ user, userPlan, onOpenPricing, onOpenAuth, onOpenDashbo
           <div className="brand-subtitle">Inteligencia & Orientación Jurídica</div>
         </div>
       </a>
-
       <div className="nav-actions">
-        {/* Solo mostrar botones de descarga si NO está corriendo dentro de la APK nativa ni PWA instalada */}
-        {!isNativeApp && !isStandalone && (
-          <>
-            {/* Botón Descargar APK Android */}
-            <a 
-              href="/leyia-chile.apk"
-              download="LeyIA-Chile.apk"
-              className="btn-secondary"
-              title="Descargar paquete APK Nativo para Android"
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', textDecoration: 'none', color: 'var(--text-main)', borderColor: 'rgba(245, 158, 11, 0.4)' }}
-            >
-              <Download size={14} color="var(--primary-accent)" /> Descargar APK Android
-            </a>
-
-            {/* Botón Instalar PWA */}
-            <button 
-              onClick={handleInstallApp}
-              className="btn-secondary"
-              title="Instalar LeyIA Chile en pantalla de inicio"
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-            >
-              Instalar Web App
-            </button>
-          </>
-        )}
-
         {/* Badge del Plan Actual */}
         {getPlanBadge()}
 

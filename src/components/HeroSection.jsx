@@ -84,63 +84,7 @@ export function HeroSection({ onScrollToConsulta, onOpenPricing }) {
         </div>
       </div>
 
-      {/* Columna derecha: Visual / Mockup */}
-      <div className="hero-visual" aria-hidden="true">
-        <div className="hero-mockup-card">
-          <div className="mockup-header">
-            <Scale size={20} color="var(--primary-accent)" />
-            <span className="mockup-title">Análisis Legal en Curso</span>
-            <span className="mockup-status">
-              <span className="mockup-dot"></span>
-              Activo
-            </span>
-          </div>
 
-          <div className="mockup-query">
-            <p className="mockup-query-label">Consulta del usuario</p>
-            <p className="mockup-query-text">
-              "Mi empleador me despidió sin aviso y no quiere pagarme el finiquito completo..."
-            </p>
-          </div>
-
-          <div className="mockup-divider"></div>
-
-          <div className="mockup-result">
-            <p className="mockup-result-label">Análisis LeyIA</p>
-            <div className="mockup-result-badge legal-badge-green">⚖️ Derecho Laboral — Alta Prioridad</div>
-            <p className="mockup-result-text">
-              Según el <strong>Art. 161 del Código del Trabajo</strong>, tienes derecho a indemnización por años de servicio más aviso previo de 30 días o pago equivalente...
-            </p>
-            <div className="mockup-laws-row">
-              <span className="mockup-law-tag">Art. 161 CT</span>
-              <span className="mockup-law-tag">Art. 163 CT</span>
-              <span className="mockup-law-tag">DT Ley 21.327</span>
-            </div>
-          </div>
-
-          <div className="mockup-footer">
-            <span className="mockup-action">📄 Generar Carta de Exigencia</span>
-            <span className="mockup-action">📋 Estrategia Legal</span>
-          </div>
-        </div>
-
-        {/* Floating cards decorativas */}
-        <div className="hero-float-card hero-float-left">
-          <span className="float-icon">🔒</span>
-          <div>
-            <div className="float-title">Datos Anónimos</div>
-            <div className="float-sub">Ley 19.628 Chile</div>
-          </div>
-        </div>
-
-        <div className="hero-float-card hero-float-right">
-          <span className="float-icon">⚡</span>
-          <div>
-            <div className="float-title">Respuesta Inmediata</div>
-            <div className="float-sub">Motor Legal AI v3.6</div>
-          </div>
-        </div>
-      </div>
 
       {/* Flecha scroll down */}
       <button
