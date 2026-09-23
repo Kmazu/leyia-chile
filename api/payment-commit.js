@@ -1,4 +1,5 @@
-import { WebpayPlus } from 'transbank-sdk';
+import pkg from 'transbank-sdk';
+const { WebpayPlus, Options, IntegrationApiKeys, IntegrationCommerceCodes, Environment } = pkg;
 
 export default async function handler(req, res) {
   const token = req.query?.token_ws || req.body?.token_ws;
@@ -9,7 +10,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const tx = new WebpayPlus.Transaction();
+    const tx = new WebpayPlus.Transaction(
+      new Options(
+        IntegrationCommerceCodes.WEBPAY_PLUS,
+        IntegrationApiKeys.WEBPAY_PLUS,
+        Environment.Integration
+      )
+    );
+
     const commitResponse = await tx.commit(token);
 
     if (commitResponse.status === 'AUTHORIZED' && commitResponse.response_code === 0) {

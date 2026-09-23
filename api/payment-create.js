@@ -1,4 +1,5 @@
-import { WebpayPlus, Options, IntegrationApiKeys, IntegrationCommerceCodes, Environment } from 'transbank-sdk';
+import pkg from 'transbank-sdk';
+const { WebpayPlus, Options, IntegrationApiKeys, IntegrationCommerceCodes, Environment } = pkg;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,8 +25,13 @@ export default async function handler(req, res) {
     const baseUrl = returnUrlOrigin || 'https://leyia-chile.vercel.app';
     const returnUrl = `${baseUrl}/api/payment-commit`;
 
-    // Transbank Webpay Plus modo Integración por defecto
-    const tx = new WebpayPlus.Transaction();
+    const tx = new WebpayPlus.Transaction(
+      new Options(
+        IntegrationCommerceCodes.WEBPAY_PLUS,
+        IntegrationApiKeys.WEBPAY_PLUS,
+        Environment.Integration
+      )
+    );
 
     const createResponse = await tx.create(buyOrder, sessionId, amount, returnUrl);
 
