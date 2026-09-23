@@ -98,8 +98,7 @@ export function App() {
         user={user}
         userPlan={userPlan}
         onOpenPricing={(plan) => {
-          setTargetCheckoutPlan(plan || 'pro');
-          setIsPricingOpen(true);
+          handleOpenCheckout(plan || 'pro');
         }}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenDashboard={() => setIsDashboardOpen(true)}
@@ -109,8 +108,7 @@ export function App() {
       <HeroSection
         onScrollToConsulta={scrollToConsulta}
         onOpenPricing={(plan) => {
-          setTargetCheckoutPlan(plan || 'pro');
-          setIsPricingOpen(true);
+          handleOpenCheckout(plan || 'pro');
         }}
       />
 
@@ -173,8 +171,7 @@ export function App() {
       {/* ── FOOTER COMPLETO ── */}
       <SiteFooter
         onOpenPricing={(plan) => {
-          setTargetCheckoutPlan(plan || 'pro');
-          setIsPricingOpen(true);
+          handleOpenCheckout(plan || 'pro');
         }}
       />
 
