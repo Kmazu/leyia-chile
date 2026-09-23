@@ -71,9 +71,9 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
   const handleRunAnalysis = async (textToAnalyze = queryInput) => {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
 
-    // Verificar si el usuario está en Plan Starter (gratis) y ya usó su 1 consulta libre
-    if (!isProPlan && freeQueryCount >= 1) {
-      alert('🔒 Has consumido tu 1 Consulta Gratuita del Plan Starter.\n\nPara continuar realizando consultas ilimitadas con la IA y descargar minutas legales en PDF, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
+    // Verificar si el usuario está en Plan Starter (gratis) y ya usó sus consultas libres de prueba
+    if (!isProPlan && freeQueryCount >= 10) {
+      alert('🔒 Has consumido tus consultas de prueba del Plan Starter.\n\nPara continuar realizando consultas ilimitadas con la IA y descargar minutas legales en PDF, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
       if (onOpenPricing) onOpenPricing('pro');
       return;
     }
