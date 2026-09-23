@@ -369,10 +369,10 @@ export const aiService = {
   async processLegalQuery(userQuery, category = 'all') {
     if (!userQuery || userQuery.trim().length === 0) return null;
 
-    // 1. Intentar Serverless Vercel Backend con Timeout estricto de 10 segundos
+    // 1. Intentar Serverless Vercel Backend con Timeout de 25 segundos
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
@@ -388,7 +388,7 @@ export const aiService = {
           return {
             ...result.data,
             aiConfidence: '99.9% (Google Gemini Live API)',
-            reasoningEngine: result.engine || 'Google Gemini 1.5 Flash'
+            reasoningEngine: result.engine || 'Google Gemini 3.5 Flash Lite'
           };
         }
       }
@@ -399,14 +399,14 @@ export const aiService = {
     // 2. Intentar llamada directa en cliente con VITE_GEMINI_API_KEY y modelos válidos de Gemini
     const clientApiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (clientApiKey) {
-      const candidateClientModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+      const candidateClientModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
       
       const systemPrompt = `Eres "LeyIA Chile", la Inteligencia Artificial experta en el ordenamiento jurídico de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito N° 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos). Responde ÚNICAMENTE con un JSON válido conteniendo: title, category, subjectDetected, riskLevel, riskColor, codesReferenced, summary, legalDetails, actionSteps, documentsAvailable, proStrategy.`;
 
       for (const modelName of candidateClientModels) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 25000);
 
           const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${clientApiKey}`, {
             method: 'POST',
