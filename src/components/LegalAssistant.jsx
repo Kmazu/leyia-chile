@@ -14,8 +14,8 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { authService } from '../services/authService';
 
 export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
-  const isProPlan = true;
-  const isPlusPlan = true;
+  const isProPlan = userPlan === 'pro' || userPlan === 'plus';
+  const isPlusPlan = userPlan === 'plus';
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [queryInput, setQueryInput] = useState('');
@@ -58,7 +58,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     }
   };
 
-  // Contador de consultas realizadas en la sesión para usuarios del Plan Starter
+  // Contador de consultas realizadas en la sesión para usuarios del Plan Starter (Límite: 1 consulta)
   const [freeQueryCount, setFreeQueryCount] = useState(() => {
     try {
       return parseInt(localStorage.getItem('leyia_free_queries_used') || '0', 10);
@@ -71,9 +71,9 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
   const handleRunAnalysis = async (textToAnalyze = queryInput) => {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
 
-    // Verificar si el usuario está en Plan Starter (gratis) y ya usó sus consultas libres de prueba
-    if (!isProPlan && freeQueryCount >= 10) {
-      alert('🔒 Has consumido tus consultas de prueba del Plan Starter.\n\nPara continuar realizando consultas ilimitadas con la IA y descargar minutas legales en PDF, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
+    // Verificar si el usuario está en Plan Starter (no suscrito) y ya usó su 1 consulta gratuita
+    if (!isProPlan && freeQueryCount >= 1) {
+      alert('🔒 Has alcanzado el límite de 1 consulta gratuita de prueba.\n\nPara continuar realizando consultas ilimitadas con la IA y acceder a los beneficios completos, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
       if (onOpenPricing) onOpenPricing('pro');
       return;
     }
