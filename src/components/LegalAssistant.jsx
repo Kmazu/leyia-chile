@@ -67,6 +67,8 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     }
   });
 
+  const [analysisStep, setAnalysisStep] = useState(0);
+
   // Ejecutar el análisis con el servicio de IA y desambiguación jerárquica
   const handleRunAnalysis = async (textToAnalyze = queryInput) => {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
@@ -80,12 +82,19 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
     setIsAnalyzing(true);
     setActiveResult(null);
+    setAnalysisStep(1);
 
     const pInfo = securityService.generatePrivacyBadge();
     setPrivacyInfo(pInfo);
 
+    // Simular actualización dinámica de progreso visual mientras se obtiene el resultado
+    const stepTimer1 = setTimeout(() => setAnalysisStep(2), 600);
+    const stepTimer2 = setTimeout(() => setAnalysisStep(3), 1400);
+
     try {
       const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
       setActiveResult(result);
 
       if (result && result.title) {
@@ -102,6 +111,7 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
       console.error('Error en ejecución de análisis:', err);
     } finally {
       setIsAnalyzing(false);
+      setAnalysisStep(0);
     }
   };
 
@@ -312,23 +322,26 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
         </div>
       </div>
 
-      {/* Tarjeta de Progreso de Análisis en Vivo */}
+      {/* Tarjeta de Progreso de Análisis en Vivo (Feedback Inmediato) */}
       {isAnalyzing && (
         <div style={{
           marginTop: '1.5rem',
           padding: '2rem',
-          background: 'rgba(15, 23, 42, 0.85)',
+          background: 'rgba(15, 23, 42, 0.95)',
           border: '1px solid var(--primary-accent)',
           borderRadius: '1.25rem',
           textAlign: 'center',
-          backdropFilter: 'blur(12px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.4)'
         }}>
           <RefreshCw size={36} color="var(--primary-accent)" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
           <h3 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-            Generando Diagnóstico Jurídico y Evaluación de Riesgos...
+            {analysisStep === 1 && '🔒 Step 1/3: Anonimizando datos según Ley 19.628...'}
+            {analysisStep === 2 && '⚖️ Step 2/3: Consultando Códigos Laboral, Civil, Penal y Leyes Chilenas...'}
+            {analysisStep >= 3 && '⚡ Step 3/3: Sintetizando estrategia y citas de artículos...'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: '600px', margin: '0 auto' }}>
-            LeyIA Chile analiza los Códigos Civil, Penal, del Trabajo y Leyes Especiales con IA Jurídica Especializada.
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
+            Motor Legal IA v3.6 procesando la consulta en tiempo real.
           </p>
         </div>
       )}

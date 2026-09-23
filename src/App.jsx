@@ -112,18 +112,18 @@ export function App() {
         }}
       />
 
-      {/* ── SECCIÓN 2: CÓMO FUNCIONA (3 pasos) ── */}
-      <div id="como-funciona">
-        <WorkflowSection />
-      </div>
-
-      {/* ── SECCIÓN 3: ASISTENTE LEGAL IA (Herramienta principal) ── */}
+      {/* ── SECCIÓN 2: ASISTENTE LEGAL IA (Herramienta principal - Cuadro de Chat arriba) ── */}
       <div id="consulta-section" ref={consultaRef} style={{ scrollMarginTop: '2rem' }}>
         <LegalAssistant
           userPlan={userPlan}
           onOpenPricing={(plan) => handleOpenCheckout(plan || 'plus')}
           onSaveDoc={handleSaveEmittedDoc}
         />
+      </div>
+
+      {/* ── SECCIÓN 3: CÓMO FUNCIONA (3 pasos) ── */}
+      <div id="como-funciona">
+        <WorkflowSection />
       </div>
 
       {/* ── SECCIÓN 4: TESTIMONIOS & SOCIAL PROOF ── */}
