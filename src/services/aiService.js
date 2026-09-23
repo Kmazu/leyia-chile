@@ -399,7 +399,7 @@ export const aiService = {
     // 2. Intentar llamada directa en cliente con VITE_GEMINI_API_KEY y modelos válidos de Gemini
     const clientApiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof Buffer !== 'undefined' ? Buffer.from('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c=', 'base64').toString('utf-8') : atob('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c='));
     if (clientApiKey) {
-      const candidateClientModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+      const candidateClientModels = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
       
       const systemPrompt = `Eres "LeyIA Chile", la Inteligencia Artificial experta en el ordenamiento jurídico de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito N° 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos). Responde ÚNICAMENTE con un JSON válido conteniendo: title, category, subjectDetected, riskLevel, riskColor, codesReferenced, summary, legalDetails, actionSteps, documentsAvailable, proStrategy.`;
 

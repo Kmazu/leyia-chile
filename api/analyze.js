@@ -55,10 +55,9 @@ Reglas estrictas de razonamiento para Chile:
 3. RESPONDE ÚNICAMENTE CON EL OBJETO JSON SIN BLOQUES DE TEXTO FUERA DEL JSON.`;
 
     const candidateModels = [
-      'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite',
       'gemini-3.6-flash',
-      'gemini-flash-latest'
+      'gemini-3.5-flash-lite',
+      'gemini-2.5-flash'
     ];
 
     let response = null;
