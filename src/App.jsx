@@ -16,7 +16,7 @@ import { authService } from './services/authService';
 
 export function App() {
   const [user, setUser] = useState(null);
-  const [userPlan, setUserPlan] = useState('starter'); // 'starter' | 'pro' ($5.990) | 'plus' ($9.990)
+  const [userPlan, setUserPlan] = useState('pro'); // Unlimited queries enabled for LeyIA Chile
 
   // Modales
   const [isPricingOpen, setIsPricingOpen] = useState(false);

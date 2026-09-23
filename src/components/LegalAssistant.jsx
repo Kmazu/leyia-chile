@@ -14,8 +14,8 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { authService } from '../services/authService';
 
 export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
-  const isProPlan = userPlan === 'pro' || userPlan === 'plus';
-  const isPlusPlan = userPlan === 'plus';
+  const isProPlan = true;
+  const isPlusPlan = true;
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [queryInput, setQueryInput] = useState('');
