@@ -8,9 +8,9 @@
 
 // ── Configuración ──
 import dotenv from 'dotenv';
-dotenv.config({ path: '../.env.local' });
+dotenv.config({ path: '.env.local' });
 
-const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || 'REMOVED_FOR_SECURITY';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'REMOVED_FOR_SECURITY';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'REMOVED_FOR_SECURITY';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'REMOVED_FOR_SECURITY';
 

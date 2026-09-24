@@ -1,8 +1,12 @@
 /**
  * Backend Serverless Vercel para LeyIA Chile
- * Procesa consultas legales utilizando la API de Google Gemini.
+ * Procesa consultas legales utilizando Proveedores de IA (OpenAI / Gemini).
  * SEGURIDAD: La API Key se lee EXCLUSIVAMENTE desde process.env (Vercel Dashboard).
  */
+
+import { createClient } from '@supabase/supabase-js';
+import { processWithOpenAI } from './lib/openai.js';
+import { processWithGemini } from './lib/gemini.js';
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
 const MAX_REQUESTS = 5; // 5 peticiones por minuto por IP
@@ -15,6 +19,28 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  // 1. Validación de Autenticación JWT
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No autorizado. Se requiere token JWT.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ error: 'Configuración de Supabase faltante en servidor.' });
+  }
+
+  // Cliente de Supabase autenticado como el usuario
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
   }
 
   // Rate Limiting por IP (Protección anti-abuso)
@@ -40,136 +66,100 @@ export default async function handler(req, res) {
     }
   }
 
+  // Verificación de Plan (Límites) en Backend
+  // Utilizamos service_role para operaciones administrativas si fuera necesario, pero aquí basta leer de profiles
+  const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const { data: profile } = await supabaseAdmin.from('profiles').select('plan, query_count').eq('id', user.id).single();
+  
+  const plan = profile?.plan || 'starter';
+  const queryCount = profile?.query_count || 0;
+  const monthlyLimit = plan === 'starter' ? 5 : (plan === 'pro' ? 50 : 500);
+
+  if (queryCount >= monthlyLimit) {
+    return res.status(403).json({ 
+      error: 'Límite alcanzado',
+      message: 'Has superado el límite de consultas mensuales de tu plan.'
+    });
+  }
+
   const { query, category, legalContext } = req.body || {};
 
   if (!query || typeof query !== 'string' || query.trim().length === 0) {
     return res.status(400).json({ error: 'La consulta no puede estar vacía' });
   }
 
-  // Limitar longitud de consulta para evitar abuso
   const sanitizedQuery = query.trim().slice(0, 2000);
+  const provider = process.env.AI_PROVIDER || 'gemini';
 
-  // Obtener API Key SOLO desde variables de entorno del servidor
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  if (!geminiApiKey) {
-    console.error('GEMINI_API_KEY no configurada en las variables de entorno de Vercel.');
-    return res.status(503).json({
-      error: 'Servicio no disponible',
-      message: 'El servicio de IA no está configurado. Contacta al administrador.',
-      needApiKey: true
-    });
-  }
-
-  try {
-    const defaultMockContext = `--- CONTEXTO LEGAL (RAG MOCK) ---
+  const defaultMockContext = `--- CONTEXTO LEGAL (RAG MOCK) ---
 Sección: Código del Trabajo (Art. 159, 160, 161) - Causales de terminación de contrato, despido injustificado, necesidades de la empresa.
 Sección: Ley del Consumidor 19.496 - Derecho a garantía legal (6 meses), derecho a retracto.
 Sección: Código Civil - Contratos de arrendamiento, Ley 21.461 (Devuélveme mi casa), indemnización de perjuicios.
 Sección: Código Penal - Delitos contra la propiedad (Robo, Hurto), lesiones, amenazas.
 ---------------------------------`;
 
-    const contextToUse = legalContext || defaultMockContext;
+  const contextToUse = legalContext || defaultMockContext;
 
-    const systemPrompt = `Eres "LeyIA Chile", un jurista de máximo nivel técnico y experto en el ordenamiento jurídico de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos, Código Procesal Penal).
+  const systemPrompt = `Eres "LeyIA Chile", un jurista técnico especializado en el ordenamiento jurídico de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos, Código Procesal Penal, etc.).
 
-Tu tarea es realizar un análisis legal profundo, exhaustivo, profesional y realista de la consulta.
+Reglas críticas y obligatorias:
+1. JURISDICCIÓN: Todo tu análisis DEBE basarse exclusivamente en la legislación de la República de Chile. Idioma: Español.
+2. RIGOR FACTUAL: Distingue claramente los hechos reportados por el usuario de las inferencias jurídicas. Indica incertidumbre si faltan antecedentes.
+3. NO INVENTAR: No inventes fuentes, artículos, leyes, sentencias, jurisprudencia ni URLs oficiales. Si no existe información suficiente, indícalo.
+4. USO DE FUENTES: Utiliza las fuentes recuperadas en el CONTEXTO LEGAL. Advierte cuando una fuente requiera verificación en fuentes oficiales (BCN, Poder Judicial).
+5. ROL: No te presentes como un abogado que está asumiendo la representación del caso. Entrega orientación jurídica estructurada y recomienda asesoría profesional humana cuando corresponda.
+6. CLARIDAD: Explica de manera clara pero técnicamente impecable.
 
-Responde ÚNICAMENTE con un objeto JSON válido con la siguiente estructura exacta:
+Tu tarea es analizar la consulta y devolver una respuesta legal en formato JSON según el esquema proporcionado. 
+Asegúrate de llenar los campos "facts", "legalIssues", "applicableLaw", "jurisprudence" y "procedure" basándote estrictamente en el derecho chileno y el contexto recuperado.
+Incluye siempre este descargo de responsabilidad (disclaimer) al final:
+"LEYIA CHILE ENTREGA INFORMACIÓN Y ORIENTACIÓN JURÍDICA GENERAL BASADA EN LAS FUENTES DISPONIBLES. NO SUSTITUYE LA ASESORÍA DE UN ABOGADO. LA INFORMACIÓN PUEDE REQUERIR VERIFICACIÓN SEGÚN LA FECHA, JURISDICCIÓN Y ANTECEDENTES DEL CASO."
 
-{
-  "title": "Título técnico formal del caso legal en Chile",
-  "category": "penal | laboral | civil | consumidor | familia | general",
-  "subjectDetected": "Sujeto / Objeto afectado con su encuadre jurídico",
-  "riskLevel": "CRÍTICO PENAL | ALTO RIESGO | MODERADO | RESPONSABILIDAD CIVIL | BAJO / FALTA MENOR | CORTESÍA / VIRTUAL",
-  "riskColor": "#ef4444 para penal/grave, #f97316 para laboral/medio, #d97706 o #06b6d4 para civil/falta, #34d399 para bajo/saludo",
-  "codesReferenced": ["Ley o Código Chileno 1", "Ley o Código Chileno 2"],
-  "summary": "Análisis exhaustivo, completo y realista del caso según la legislación chilena (mínimo 2-3 párrafos explicativos con plazos, procedimientos ante fiscalía/juzgados y consecuencias).",
-  "legalDetails": [
-    { "article": "Artículo y Ley exacta (ej: Art. 399 del Código Penal / Art. 160 C. del Trabajo)", "description": "Explicación legal completa de lo que sanciona o establece este artículo para el hecho específico." }
-  ],
-  "actionSteps": [
-    "Paso 1 procedural ante la institución chilena (ej: Inspección del Trabajo / Fiscalía / Juzgado de Policía Local / Notaría)",
-    "Paso 2 recolección de pruebas o certificados (ej: Constatación de Lesiones / Finiquito / Liquidaciones)",
-    "Paso 3 estrategia de resolución o querella"
-  ],
-  "documentsAvailable": [
-    { "id": "doc_id", "title": "Nombre de la plantilla o borrador recomendado", "format": "PDF / Formulario Notarial" }
-  ],
-  "proStrategy": "Estrategia jurista técnica detallada para el usuario o su abogado patrocinante (procedimientos de sobreseimiento, suspensión condicional, acuerdos reparatorios, demanda ejecutiva o reclamo DT)."
-}
-
-Reglas estrictas de razonamiento para Chile:
-1. Si el usuario saluda ("hola", "buenos días"), entrega una respuesta formal de bienvenida sin inventar delitos.
-2. Aplica estricta PROPORCIONALIDAD jurídica conforme a los tribunales chilenos.
-3. RESPONDE ÚNICAMENTE CON EL OBJETO JSON SIN BLOQUES DE TEXTO FUERA DEL JSON.
-4. BASA TU RESPUESTA EN EL CONTEXTO LEGAL PROPORCIONADO MÁS ABAJO (Simulación RAG). NO ALUCINES NI INVENTES ARTÍCULOS INEXISTENTES. Si el contexto no es suficiente, limítate a los principios generales del derecho chileno.
-
+CONTEXTO LEGAL RECUPERADO:
 ${contextToUse}`;
 
-    const candidateModels = [
-      'gemini-2.5-flash',
-      'gemini-2.0-flash'
-    ];
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const startTime = Date.now();
 
-    let response = null;
-    let lastErrorText = '';
-    let selectedModel = '';
-
-    for (const modelName of candidateModels) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-        const apiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [
-              { role: 'user', parts: [{ text: `${systemPrompt}\\n\\nConsulta del Usuario: "${sanitizedQuery}"` }] }
-            ]
-          })
-        });
-        clearTimeout(timeoutId);
-
-        if (apiRes.ok) {
-          response = apiRes;
-          selectedModel = modelName;
-          break;
-        } else {
-          lastErrorText = await apiRes.text();
-        }
-      } catch (e) {
-        lastErrorText = e.message;
-      }
+  try {
+    let aiResponse;
+    if (provider === 'openai') {
+      aiResponse = await processWithOpenAI(systemPrompt, sanitizedQuery);
+    } else {
+      aiResponse = await processWithGemini(systemPrompt, sanitizedQuery);
     }
+    const durationMs = Date.now() - startTime;
 
-    if (!response || !response.ok) {
-      throw new Error(`Gemini API Error: ${lastErrorText}`);
-    }
-
-    const data = await response.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!candidateText) {
-      throw new Error('Respuesta vacía recibida desde la API de Gemini');
-    }
-
-    const cleanedText = candidateText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-    const parsedJson = JSON.parse(jsonMatch ? jsonMatch[0] : cleanedText);
+    // Registrar consumo
+    await supabaseAdmin.from('ai_usage').insert([{
+      user_id: user.id,
+      request_id: requestId,
+      model: aiResponse.usage.model,
+      prompt_tokens: aiResponse.usage.prompt_tokens,
+      completion_tokens: aiResponse.usage.completion_tokens,
+      total_tokens: aiResponse.usage.total_tokens,
+      duration_ms: durationMs,
+      endpoint: '/api/analyze'
+    }]);
 
     return res.status(200).json({
       status: 'success',
-      engine: `Motor Legal IA LeyIA Chile`,
-      data: parsedJson
+      engine: provider,
+      request_id: requestId,
+      data: aiResponse.data
     });
   } catch (error) {
-    // No exponer detalles internos en producción
-    console.error('Error procesando consulta legal:', error.message);
+    console.error(`Error procesando consulta legal (${provider}):`, error.message);
+    
+    // Registrar error internamente pero no devolver el stacktrace al cliente
+    await supabaseAdmin.from('ai_usage').insert([{
+      user_id: user.id,
+      request_id: requestId,
+      model: provider,
+      endpoint: '/api/analyze_error'
+    }]);
 
-    if (error.message.includes('NOT_FOUND') || error.message.includes('404')) {
+    if (error.message.includes('API_KEY')) {
       return res.status(503).json({
         status: 'error',
         message: 'El servicio de IA requiere configuración. Contacta al administrador.',
@@ -179,8 +169,7 @@ ${contextToUse}`;
 
     return res.status(500).json({
       error: 'Error procesando tu consulta legal',
-      message: 'Por favor intenta nuevamente en unos segundos.'
+      message: 'El análisis no pudo completarse. Inténtalo nuevamente.'
     });
   }
 }
-

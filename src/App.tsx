@@ -81,17 +81,17 @@ export function App() {
     setIsCheckoutOpen(true);
   };
 
-  const handleUpgradeSuccess = (upgradedPlan) => {
+  const handleUpgradeSuccess = async (upgradedPlan) => {
     setUserPlan(upgradedPlan);
     if (user) {
-      const updated = authService.updatePlan(upgradedPlan);
+      const updated = await authService.updatePlan(upgradedPlan);
       setUser(updated);
     }
     setIsCheckoutOpen(false);
   };
 
-  const handleSaveEmittedDoc = (docData) => {
-    const updatedDocs = authService.saveEmittedDoc(docData);
+  const handleSaveEmittedDoc = async (docData) => {
+    const updatedDocs = await authService.saveEmittedDoc(docData);
     setEmittedDocs(updatedDocs);
   };
 

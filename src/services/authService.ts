@@ -1,10 +1,5 @@
 import { supabase } from './supabaseClient';
 
-const STORAGE_KEY_USER_SESSION = 'leyia_user_session';
-const STORAGE_KEY_CASES = 'leyia_user_saved_cases';
-const STORAGE_KEY_DOCS = 'leyia_user_emitted_docs';
-const STORAGE_KEY_LEGAL_CASES = 'leyia_user_legal_expedientes';
-
 export const authService = {
   // ── 1. SESIÓN Y PERFIL DE USUARIO ──
 
@@ -12,22 +7,15 @@ export const authService = {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
-        const local = localStorage.getItem(STORAGE_KEY_USER_SESSION);
-        return local ? JSON.parse(local) : null;
+        return null;
       }
 
       // Intentar obtener de la tabla 'profiles'
-      let profile = null;
-      try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        profile = data;
-      } catch (e) {
-        console.info('Profile table standby fallback');
-      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
       const isSuperUser = profile?.role === 'superadmin';
 
@@ -38,33 +26,25 @@ export const authService = {
         username: profile?.username || session.user.user_metadata?.username || session.user.email.split('@')[0],
         avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url || null,
         provider: session.user.app_metadata?.provider || 'email',
-        plan: isSuperUser ? 'plus' : (profile?.plan || session.user.user_metadata?.plan || 'starter'),
+        plan: isSuperUser ? 'plus' : (profile?.plan || 'starter'),
         isSuperUser: isSuperUser,
         emailConfirmed: !!session.user.email_confirmed_at
       };
 
-      localStorage.setItem(STORAGE_KEY_USER_SESSION, JSON.stringify(userObject));
       return userObject;
     } catch (e) {
-      console.warn('Supabase session fetch warning, using local session:', e);
-      const local = localStorage.getItem(STORAGE_KEY_USER_SESSION);
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          return parsed;
-        } catch (err) {}
-      }
-      return local ? JSON.parse(local) : null;
+      console.error('Supabase session fetch error:', e);
+      return null;
     }
   },
 
-  getUser() {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_USER_SESSION);
-      return data ? JSON.parse(data) : null;
-    } catch (e) {
-      return null;
-    }
+  async getCurrentSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  },
+
+  async getUser() {
+    return await this.getUserSession();
   },
 
   async getSessionToken() {
@@ -111,17 +91,16 @@ export const authService = {
     const isSuperUser = false;
 
     const newUser = {
-      id: data.user?.id || 'usr_' + Date.now(),
+      id: data.user?.id,
       email: cleanEmail,
       username: cleanUsername,
       name: fullName.trim() || cleanEmail.split('@')[0],
       provider: 'email',
-      plan: isSuperUser ? 'plus' : 'starter',
+      plan: 'starter',
       isSuperUser: isSuperUser,
       emailConfirmed: false
     };
 
-    localStorage.setItem(STORAGE_KEY_USER_SESSION, JSON.stringify(newUser));
     return { user: newUser, requiresVerification: !data.session };
   },
 
@@ -146,8 +125,7 @@ export const authService = {
       throw new Error(error.message);
     }
 
-    const sessionUser = await this.getUserSession();
-    return sessionUser;
+    return await this.getUserSession();
   },
 
   async resetPassword(email) {
@@ -192,30 +170,12 @@ export const authService = {
     return data;
   },
 
-  async resetPassword(email) {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      throw new Error('Ingresa un correo electrónico válido para enviar la recuperación');
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: `${window.location.origin}/reset-password`
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return true;
-  },
-
   async logout() {
     try {
       await supabase.auth.signOut();
     } catch (e) {
       console.warn('Signout warning:', e);
     }
-    localStorage.removeItem(STORAGE_KEY_USER_SESSION);
   },
 
   async incrementQueryCount() {
@@ -243,11 +203,8 @@ export const authService = {
   // ── 3. GESTIÓN DE EXPEDIENTES JURÍDICOS (CARPETAS / CAUSAS) ──
 
   async getLegalCases() {
-    const user = this.getUser();
-    if (!user) {
-      const local = localStorage.getItem(STORAGE_KEY_LEGAL_CASES);
-      return local ? JSON.parse(local) : [];
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
     try {
       const { data, error } = await supabase
@@ -257,65 +214,38 @@ export const authService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      localStorage.setItem(`${STORAGE_KEY_LEGAL_CASES}_${user.id}`, JSON.stringify(data));
       return data || [];
     } catch (e) {
-      const local = localStorage.getItem(`${STORAGE_KEY_LEGAL_CASES}_${user.id}`);
-      return local ? JSON.parse(local) : [];
+      console.error('Error fetching legal cases:', e);
+      return [];
     }
   },
 
   async createLegalCase({ title, description, category = 'civil', status = 'activo' }) {
-    const user = this.getUser();
-    const newCaseLocal = {
-      id: 'case_' + Date.now(),
-      user_id: user ? user.id : 'guest',
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      category: category.toLowerCase(),
-      status: status,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Debes estar autenticado para crear un caso.');
 
-    if (!user) {
-      const cases = await this.getLegalCases();
-      cases.unshift(newCaseLocal);
-      localStorage.setItem(STORAGE_KEY_LEGAL_CASES, JSON.stringify(cases));
-      return newCaseLocal;
-    }
+    const { data, error } = await supabase
+      .from('legal_cases')
+      .insert([{
+        user_id: user.id,
+        title: title.trim(),
+        description: description ? description.trim() : '',
+        category: category.toLowerCase(),
+        status: status
+      }])
+      .select()
+      .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('legal_cases')
-        .insert([{
-          user_id: user.id,
-          title: title.trim(),
-          description: description ? description.trim() : '',
-          category: category.toLowerCase(),
-          status: status
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (e) {
-      const cases = await this.getLegalCases();
-      cases.unshift(newCaseLocal);
-      localStorage.setItem(`${STORAGE_KEY_LEGAL_CASES}_${user.id}`, JSON.stringify(cases));
-      return newCaseLocal;
-    }
+    if (error) throw error;
+    return data;
   },
 
   // ── 4. GESTIÓN DE CONSULTAS JURÍDICAS PERSISTENTES ──
 
   async getSavedCases() {
-    const user = this.getUser();
-    if (!user) {
-      const data = localStorage.getItem(STORAGE_KEY_CASES);
-      return data ? JSON.parse(data) : [];
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
     try {
       const { data, error } = await supabase
@@ -334,52 +264,37 @@ export const authService = {
         caseId: c.case_id
       }));
     } catch (e) {
-      const data = localStorage.getItem(`${STORAGE_KEY_CASES}_${user.id}`);
-      return data ? JSON.parse(data) : [];
+      console.error('Error fetching consultations:', e);
+      return [];
     }
   },
 
   async saveCase(caseData) {
-    const user = this.getUser();
-    const newCase = {
-      id: 'consult_' + Date.now(),
-      date: new Date().toLocaleDateString('es-CL'),
-      timestamp: new Date().toISOString(),
-      userId: user ? user.id : 'guest',
-      ...caseData
-    };
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
-    if (user && user.id) {
-      try {
-        await supabase
-          .from('legal_consultations')
-          .insert([{
-            user_id: user.id,
-            case_id: caseData.caseId || null,
-            question: caseData.query || '',
-            response: typeof caseData.result === 'string' ? caseData.result : caseData.result?.summary || '',
-            category: caseData.category || caseData.result?.category || 'general'
-          }]);
-      } catch (e) {
-        console.warn('Consultation save info:', e);
-      }
+    try {
+      await supabase
+        .from('legal_consultations')
+        .insert([{
+          user_id: user.id,
+          case_id: caseData.caseId || null,
+          question: caseData.query || '',
+          response: typeof caseData.result === 'string' ? caseData.result : caseData.result?.summary || '',
+          category: caseData.category || caseData.result?.category || 'general'
+        }]);
+    } catch (e) {
+      console.error('Consultation save error:', e);
     }
 
-    const userKey = user ? `${STORAGE_KEY_CASES}_${user.id}` : STORAGE_KEY_CASES;
-    const cases = await this.getSavedCases();
-    cases.unshift(newCase);
-    localStorage.setItem(userKey, JSON.stringify(cases));
-    return cases;
+    return await this.getSavedCases();
   },
 
   // ── 5. GESTIÓN DE DOCUMENTOS JURÍDICOS ──
 
   async getEmittedDocs() {
-    const user = this.getUser();
-    if (!user) {
-      const data = localStorage.getItem(STORAGE_KEY_DOCS);
-      return data ? JSON.parse(data) : [];
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
     try {
       const { data, error } = await supabase
@@ -398,49 +313,42 @@ export const authService = {
         caseId: d.case_id
       }));
     } catch (e) {
-      const data = localStorage.getItem(`${STORAGE_KEY_DOCS}_${user.id}`);
-      return data ? JSON.parse(data) : [];
+      console.error('Error fetching documents:', e);
+      return [];
     }
   },
 
   async saveEmittedDoc(docData) {
-    const user = this.getUser();
-    const newDoc = {
-      id: 'doc_' + Date.now(),
-      date: new Date().toLocaleDateString('es-CL'),
-      userId: user ? user.id : 'guest',
-      ...docData
-    };
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
-    if (user && user.id) {
-      try {
-        await supabase
-          .from('documents')
-          .insert([{
-            user_id: user.id,
-            case_id: docData.caseId || null,
-            name: docData.docName || 'Documento Legal',
-            document_type: docData.docType || 'PDF',
-            storage_path: `users/${user.id}/docs/${Date.now()}.pdf`
-          }]);
-      } catch (e) {
-        console.warn('Document save info:', e);
-      }
+    try {
+      await supabase
+        .from('documents')
+        .insert([{
+          user_id: user.id,
+          case_id: docData.caseId || null,
+          name: docData.docName || 'Documento Legal',
+          document_type: docData.docType || 'PDF',
+          storage_path: `users/${user.id}/docs/${Date.now()}.pdf`
+        }]);
+    } catch (e) {
+      console.error('Document save error:', e);
     }
 
-    const userKey = user ? `${STORAGE_KEY_DOCS}_${user.id}` : STORAGE_KEY_DOCS;
-    const docs = await this.getEmittedDocs();
-    docs.unshift(newDoc);
-    localStorage.setItem(userKey, JSON.stringify(docs));
-    return docs;
+    return await this.getEmittedDocs();
   },
 
-  updatePlan(planType) {
-    const currentUser = this.getUser();
-    if (currentUser) {
-      currentUser.plan = planType;
-      localStorage.setItem(STORAGE_KEY_USER_SESSION, JSON.stringify(currentUser));
-    }
-    return currentUser;
+  async updatePlan(planType) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuario no autenticado.');
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ plan: planType })
+      .eq('id', user.id);
+
+    if (error) throw error;
+    return await this.getUserSession();
   }
 };

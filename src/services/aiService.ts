@@ -4,6 +4,7 @@
  */
 import { legalSearchService } from './legalSearchService';
 import { analyticsService } from './analyticsService';
+import { authService } from './authService';
 
 function generateChileanLegalFallback(query, category) {
   const q = query.toLowerCase().trim();
@@ -391,9 +392,15 @@ export const aiService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000);
 
+      const session = await authService.getCurrentSession();
+      const token = session ? session.access_token : '';
+
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         signal: controller.signal,
         body: JSON.stringify({ query: userQuery, category, legalContext })
       });

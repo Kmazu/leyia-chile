@@ -95,8 +95,8 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
       setActiveResult(result);
 
       if (result && result.title && user) {
-        authService.saveCase(result);
-        authService.incrementQueryCount(); // Asumimos que esta función existe o la crearemos
+        await authService.saveCase(result);
+        await authService.incrementQueryCount();
       }
 
       // Si es plan gratis sin login, incrementar el contador de uso gratuito local
@@ -338,38 +338,78 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
             {activeResult.summary || 'Análisis legal procesado por LeyIA Chile.'}
           </div>
 
-          {/* Códigos y Artículos Chilenos Aplicables */}
-          <div>
-            <h3 className="codes-section-title">
-              <Scale size={18} color="#fbbf24" /> Códigos y Leyes Chilenas Aplicables
-            </h3>
+          {/* Hechos y Problemas Jurídicos */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
+            <div className="checklist-box" style={{ marginTop: 0 }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#3b82f6', marginBottom: '1rem' }}>Hechos Relevantes</h3>
+              <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem' }}>
+                {(activeResult.facts || []).map((fact, idx) => <li key={idx} style={{ marginBottom: '0.4rem' }}>{fact}</li>)}
+              </ul>
+            </div>
+            <div className="checklist-box" style={{ marginTop: 0 }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ef4444', marginBottom: '1rem' }}>Problemas Jurídicos</h3>
+              <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem' }}>
+                {(activeResult.legalIssues || []).map((issue, idx) => <li key={idx} style={{ marginBottom: '0.4rem' }}>{issue}</li>)}
+              </ul>
+            </div>
+          </div>
 
+          {/* Normativa y Jurisprudencia */}
+          <div style={{ marginTop: '1.5rem' }}>
+            <h3 className="codes-section-title">
+              <Scale size={18} color="#fbbf24" /> Normativa Aplicable y Jurisprudencia
+            </h3>
             <div className="codes-grid">
-              {(activeResult.legalDetails || []).map((detail, idx) => (
-                <div key={idx} className="code-box">
-                  <div className="code-article">{detail.article}</div>
-                  <p className="code-desc">{detail.description}</p>
+              {(activeResult.applicableLaw || []).map((law, idx) => (
+                <div key={`law-${idx}`} className="code-box">
+                  <div className="code-article">Normativa</div>
+                  <p className="code-desc">{law}</p>
+                </div>
+              ))}
+              {(activeResult.jurisprudence || []).map((jur, idx) => (
+                <div key={`jur-${idx}`} className="code-box">
+                  <div className="code-article">Jurisprudencia</div>
+                  <p className="code-desc">{jur}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Guía de Actuación Paso a Paso */}
-          <div className="checklist-box">
+          {/* Procedimiento y Plazos */}
+          <div className="checklist-box" style={{ marginTop: '1.5rem' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10b981', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle2 size={18} /> Plan de Acción Recomendado
+              <CheckCircle2 size={18} /> Procedimiento, Evidencia y Recomendaciones
             </h3>
+            <div style={{ marginBottom: '1rem' }}>
+              <strong>Procedimiento:</strong>
+              <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                {(activeResult.procedure || []).map((step, idx) => <li key={idx} style={{ marginBottom: '0.4rem' }}>{step}</li>)}
+              </ul>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <strong>Plazos:</strong>
+              <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                {(activeResult.deadlines || []).map((deadline, idx) => <li key={idx} style={{ marginBottom: '0.4rem' }}>{deadline}</li>)}
+              </ul>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <strong>Recomendaciones / Riesgos:</strong>
+              <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                {(activeResult.recommendations || []).map((rec, idx) => <li key={`rec-${idx}`} style={{ marginBottom: '0.4rem' }}>{rec}</li>)}
+                {(activeResult.risks || []).map((risk, idx) => <li key={`risk-${idx}`} style={{ marginBottom: '0.4rem', color: '#fca5a5' }}>Riesgo: {risk}</li>)}
+              </ul>
+            </div>
+          </div>
 
-            {(activeResult.actionSteps || []).map((step, idx) => (
-              <div key={idx} className="checklist-item">
-                <div className="checklist-icon">
-                  <CheckCircle2 size={16} />
-                </div>
-                <div>
-                  <strong>Paso {idx + 1}:</strong> {step}
-                </div>
-              </div>
-            ))}
+          {/* Fuentes y Aviso */}
+          <div style={{ marginTop: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px' }}>
+            <h4 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Fuentes de Verificación:</h4>
+            <ul style={{ paddingLeft: '1.2rem', color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1rem' }}>
+              {(activeResult.sources || []).map((source, idx) => <li key={idx}>{source}</li>)}
+            </ul>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
+              {activeResult.disclaimer || "LEYIA CHILE ENTREGA INFORMACIÓN Y ORIENTACIÓN JURÍDICA GENERAL BASADA EN LAS FUENTES DISPONIBLES. NO SUSTITUYE LA ASESORÍA DE UN ABOGADO. LA INFORMACIÓN PUEDE REQUERIR VERIFICACIÓN SEGÚN LA FECHA, JURISDICCIÓN Y ANTECEDENTES DEL CASO."}
+            </p>
           </div>
 
           {/* Generador de Documentos y Minutas en Pro */}
