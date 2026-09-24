@@ -2,6 +2,8 @@
  * Servicio de Inteligencia Artificial & Razonamiento Jurídico para LeyIA Chile
  * Motor Jurídico Dinámico y Personalizado para Chile.
  */
+import { legalSearchService } from './legalSearchService';
+import { analyticsService } from './analyticsService';
 
 function generateChileanLegalFallback(query, category) {
   const q = query.toLowerCase().trim();
@@ -369,7 +371,22 @@ export const aiService = {
   async processLegalQuery(userQuery, category = 'all') {
     if (!userQuery || userQuery.trim().length === 0) return null;
 
-    // 1. Intentar Serverless Vercel Backend con Timeout de 25 segundos
+    analyticsService.trackEvent('Legal Query Submitted', {
+      category: category,
+      queryLength: userQuery.length,
+      hasContext: true
+    });
+
+    // 1. Obtener contexto legal RAG (Búsqueda Vectorial)
+    let legalContext = '';
+    try {
+      const sources = await legalSearchService.searchLegalSources(userQuery, category);
+      legalContext = legalSearchService.formatContext(sources);
+    } catch (e) {
+      console.warn('No se pudo obtener contexto legal RAG:', e.message);
+    }
+
+    // 2. Intentar Serverless Vercel Backend con Timeout de 25 segundos
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000);
@@ -378,7 +395,7 @@ export const aiService = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
-        body: JSON.stringify({ query: userQuery, category })
+        body: JSON.stringify({ query: userQuery, category, legalContext })
       });
       clearTimeout(timeoutId);
 
@@ -396,49 +413,9 @@ export const aiService = {
       console.warn('Backend Serverless Vercel no respondió a tiempo. Evaluando cliente directo o motor jurista NLU...');
     }
 
-    // 2. Intentar llamada directa en cliente con VITE_GEMINI_API_KEY y modelos válidos de Gemini
-    const clientApiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof Buffer !== 'undefined' ? Buffer.from('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c=', 'base64').toString('utf-8') : atob('QVEuQWI4Uk42S3VtM3M1bWE3Mmo3QmFaX0I2Yjl3dlZ0YlRHSVJYVjRHNkpXVHNPcnZaU2c='));
-    if (clientApiKey) {
-      const candidateClientModels = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
-      
-      const systemPrompt = `Eres "LeyIA Chile", la Inteligencia Artificial experta en el ordenamiento jurídico de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito N° 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos). Responde ÚNICAMENTE con un JSON válido conteniendo: title, category, subjectDetected, riskLevel, riskColor, codesReferenced, summary, legalDetails, actionSteps, documentsAvailable, proStrategy.`;
-
-      for (const modelName of candidateClientModels) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${clientApiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [
-                { role: 'user', parts: [{ text: `${systemPrompt}\n\nConsulta del Usuario: "${userQuery}"` }] }
-              ],
-              generationConfig: { response_mime_type: "application/json" }
-            })
-          });
-          clearTimeout(timeoutId);
-
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (rawText) {
-              const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-              const parsed = JSON.parse(cleanedText);
-              return {
-                ...parsed,
-                aiConfidence: '99.9% (Motor Jurídico LeyIA Chile)',
-                reasoningEngine: `Motor Legal IA (v3.6)`
-              };
-            }
-          }
-        } catch (clientErr) {
-          console.warn(`Llamada a ${modelName} no completada:`, clientErr.message);
-        }
-      }
-    }
+    // 2. SEGURIDAD: Llamada directa a Gemini desde el navegador ELIMINADA.
+    //    Toda la comunicación con IA se realiza exclusivamente a través de /api/analyze (backend seguro).
+    //    Esto evita la exposición de API Keys en el código del cliente.
 
     // 3. Respaldo Jurídico Instantáneo NLU Personalizado (Chilean Legal Engine)
     // Garantiza respuesta inmediata (< 0.1 segundos) profundamente personalizada a la pregunta exacta del usuario

@@ -2,47 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Scale, Download, User, ShieldCheck, Zap, Sparkles, CreditCard } from 'lucide-react';
 
 export function Navbar({ user, userPlan, onOpenPricing, onOpenAuth, onOpenDashboard }) {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [canInstall, setCanInstall] = useState(false);
-
-  const [isNativeApp, setIsNativeApp] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    // Detectar si está corriendo dentro de Capacitor / APK Nativa
-    const isCapacitor = window.Capacitor?.isNativePlatform?.() || 
-                        window.location.href.includes('capacitor://') || 
-                        window.location.protocol === 'file:';
-    setIsNativeApp(!!isCapacitor);
-
-    // Detectar si la Web App PWA ya está instalada / ejecutándose standalone
-    const isPwaInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                           window.navigator.standalone === true;
-    setIsStandalone(isPwaInstalled);
-
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setCanInstall(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallApp = async () => {
-    if (!deferredPrompt) {
-      alert('Para instalar LeyIA Chile en tu dispositivo: abre el menú del navegador y selecciona "Agregar a la pantalla de inicio" o "Instalar Aplicación".');
-      return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setCanInstall(false);
-    }
-    setDeferredPrompt(null);
-  };
-
   const getPlanBadge = () => {
     if (userPlan === 'plus') {
       return <span className="badge-pro" style={{ background: 'rgba(217, 119, 6, 0.2)', color: '#f59e0b' }}>PLAN PLUS ($9.990)</span>;

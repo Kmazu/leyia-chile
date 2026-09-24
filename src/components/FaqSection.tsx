@@ -19,7 +19,7 @@ export function FaqSection() {
     },
     {
       question: '¿Puedo instalar LeyIA Chile como una aplicación en mi teléfono o computador?',
-      answer: '¡Absolutamente! Haz clic en el botón "Instalar App" en la barra de navegación. LeyIA Chile se instalará como una aplicación independiente (PWA) en tu dispositivo Android, iPhone, Windows o Mac sin necesidad de abrir un navegador web.'
+      answer: '¡Absolutamente! Puedes utilizar LeyIA Chile desde cualquier navegador web en tu celular, tablet o computador sin problemas.'
     },
     {
       question: '¿Cuál es la diferencia entre el Plan Pro ($5.990) y el Plan Plus ($9.990)?',

@@ -16,9 +16,16 @@ export default async function handler(req, res) {
     const amount = amountMap[plan] || 5990;
     const planName = plan === 'plus' ? 'Plan Legal Plus LeyIA Chile' : 'Plan Legal Pro LeyIA Chile';
 
-    const apiKey = process.env.FLOW_API_KEY || '2BF1FFE4-1745-42F5-8A1A-28LCE1284096';
-    const secretKey = process.env.FLOW_SECRET_KEY || '580d4338632ed42c84e4eecdcc1ab226a1ea2914';
+    const apiKey = process.env.FLOW_API_KEY;
+    const secretKey = process.env.FLOW_SECRET_KEY;
     const flowEnv = process.env.FLOW_ENVIRONMENT || 'production';
+
+    if (!apiKey || !secretKey) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'El servicio de pagos no está configurado. Contacta al administrador.'
+      });
+    }
 
     const baseUrl = returnUrlOrigin || 'https://leyia-chile.vercel.app';
     const commerceOrder = `LEYIA-${Date.now()}`;

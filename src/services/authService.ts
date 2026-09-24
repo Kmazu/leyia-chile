@@ -29,14 +29,7 @@ export const authService = {
         console.info('Profile table standby fallback');
       }
 
-      const nameStr = (profile?.nombre || session.user.user_metadata?.full_name || session.user.user_metadata?.nombre || session.user.email?.split('@')[0] || '').toLowerCase();
-      const usernameStr = (profile?.username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || '').toLowerCase();
-      const emailStr = (session.user.email || '').toLowerCase();
-
-      const isSuperUser = nameStr.includes('glenn') || 
-                         usernameStr.includes('montielglenn') || 
-                         usernameStr.includes('glenn') || 
-                         emailStr.includes('montielglenn');
+      const isSuperUser = profile?.role === 'superadmin';
 
       const userObject = {
         id: session.user.id,
@@ -58,13 +51,6 @@ export const authService = {
       if (local) {
         try {
           const parsed = JSON.parse(local);
-          const nameStr = (parsed.name || '').toLowerCase();
-          const usernameStr = (parsed.username || '').toLowerCase();
-          const emailStr = (parsed.email || '').toLowerCase();
-          if (nameStr.includes('glenn') || usernameStr.includes('montielglenn') || emailStr.includes('montielglenn')) {
-            parsed.plan = 'plus';
-            parsed.isSuperUser = true;
-          }
           return parsed;
         } catch (err) {}
       }
@@ -76,6 +62,15 @@ export const authService = {
     try {
       const data = localStorage.getItem(STORAGE_KEY_USER_SESSION);
       return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async getSessionToken() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.access_token || null;
     } catch (e) {
       return null;
     }
@@ -113,7 +108,7 @@ export const authService = {
       throw new Error(error.message);
     }
 
-    const isSuperUser = cleanEmail.includes('glenn') || cleanUsername.includes('montielglenn') || fullName.toLowerCase().includes('glenn');
+    const isSuperUser = false;
 
     const newUser = {
       id: data.user?.id || 'usr_' + Date.now(),
@@ -155,6 +150,33 @@ export const authService = {
     return sessionUser;
   },
 
+  async resetPassword(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('Ingresa un correo electrónico válido');
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/?recovery=true`,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return true;
+  },
+
+  async updatePassword(newPassword) {
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('La contraseña debe tener al menos 6 caracteres');
+    }
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return true;
+  },
+
   async loginWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -194,6 +216,28 @@ export const authService = {
       console.warn('Signout warning:', e);
     }
     localStorage.removeItem(STORAGE_KEY_USER_SESSION);
+  },
+
+  async incrementQueryCount() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('query_count')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) throw error;
+
+      await supabase
+        .from('profiles')
+        .update({ query_count: (data.query_count || 0) + 1 })
+        .eq('id', user.id);
+    } catch (e) {
+      console.error('Error incrementing query count:', e);
+    }
   },
 
   // ── 3. GESTIÓN DE EXPEDIENTES JURÍDICOS (CARPETAS / CAUSAS) ──

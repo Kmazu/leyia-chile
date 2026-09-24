@@ -1,7 +1,7 @@
 /**
  * Servicio de Seguridad y Protección de Datos Personales (Ley 19.628 - Chile)
  * Proporciona anonimización de PII (Información de Identificación Personal),
- * cifrado de sesión local y validaciones de integridad de datos.
+ * cifrado de sesión local utilizando Web Crypto API (AES-GCM), y validaciones.
  */
 
 // Expresiones regulares para detección de datos sensibles en Chile
@@ -61,12 +61,44 @@ export const securityService = {
   },
 
   /**
-   * Cifrado simple en base64 con salt para persistencia segura en navegador
+   * Obtiene o genera la clave de cifrado AES-GCM para la sesión actual
    */
-  encryptSessionData(data) {
+  async getEncryptionKey() {
+    let rawKey = sessionStorage.getItem('leyia_sec_key');
+    if (!rawKey) {
+      const key = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const exported = await crypto.subtle.exportKey('raw', key);
+      rawKey = btoa(String.fromCharCode(...new Uint8Array(exported)));
+      sessionStorage.setItem('leyia_sec_key', rawKey);
+      return key;
+    }
+    const keyBytes = Uint8Array.from(atob(rawKey), c => c.charCodeAt(0));
+    return await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      'AES-GCM',
+      true,
+      ['encrypt', 'decrypt']
+    );
+  },
+
+  /**
+   * Cifrado con AES-GCM (Web Crypto API)
+   */
+  async encryptSessionData(data) {
     try {
-      const json = JSON.stringify(data);
-      return btoa(encodeURIComponent(json));
+      const key = await this.getEncryptionKey();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(JSON.stringify(data));
+      const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+      
+      const cipherArray = Array.from(new Uint8Array(cipher));
+      const ivArray = Array.from(iv);
+      return btoa(JSON.stringify({ cipher: cipherArray, iv: ivArray }));
     } catch (e) {
       console.error('Error cifrando datos de sesión:', e);
       return null;
@@ -74,13 +106,19 @@ export const securityService = {
   },
 
   /**
-   * Descifrado de sesión local
+   * Descifrado con AES-GCM (Web Crypto API)
    */
-  decryptSessionData(encryptedStr) {
+  async decryptSessionData(encryptedStr) {
     try {
       if (!encryptedStr) return null;
-      const json = decodeURIComponent(atob(encryptedStr));
-      return JSON.parse(json);
+      const { cipher, iv } = JSON.parse(atob(encryptedStr));
+      const key = await this.getEncryptionKey();
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: new Uint8Array(iv) },
+        key,
+        new Uint8Array(cipher)
+      );
+      return JSON.parse(new TextDecoder().decode(decrypted));
     } catch (e) {
       console.error('Error descifrando datos de sesión:', e);
       return null;

@@ -1,5 +1,7 @@
 import React from 'react';
 import { X, Printer, ShieldCheck, FileCheck2, Scale, Download } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { SimplePDFDocument } from './PDFGenerator';
 
 export function ExportReportModal({ isOpen, onClose, result, userQuery, privacyInfo }) {
   if (!isOpen || !result) return null;
@@ -7,6 +9,21 @@ export function ExportReportModal({ isOpen, onClose, result, userQuery, privacyI
   const handlePrint = () => {
     window.print();
   };
+
+  const pdfContent = `
+Materia: ${result.title}
+Nivel de Gravedad / Riesgo: ${result.riskLevel}
+
+Síntesis: 
+${result.summary}
+
+Artículos y Leyes:
+${result.legalDetails?.map(item => `- ${item.article}: ${item.description}`).join('\n')}
+
+Plan de Acción:
+${result.actionSteps?.map((step, idx) => `${idx + 1}. ${step}`).join('\n')}
+  `.trim();
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -117,8 +134,26 @@ export function ExportReportModal({ isOpen, onClose, result, userQuery, privacyI
             <button className="btn-secondary" onClick={onClose}>
               Cerrar
             </button>
-            <button className="btn-analyze" onClick={handlePrint} style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem' }}>
-              <Printer size={16} /> Imprimir / Guardar PDF
+            <PDFDownloadLink
+              document={<SimplePDFDocument title={result.title} content={pdfContent} date={new Date().toLocaleDateString('es-CL')} />}
+              fileName={`Reporte_${result.title.replace(/\s+/g, '_')}.pdf`}
+              style={{
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1.25rem',
+                fontSize: '0.875rem',
+                background: 'var(--primary-color)',
+                color: 'white',
+                borderRadius: '0.5rem',
+                fontWeight: 600
+              }}
+            >
+              <Download size={16} /> Descargar PDF
+            </PDFDownloadLink>
+            <button className="btn-analyze" onClick={handlePrint} style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem', background: 'transparent', border: '1px solid var(--border-color)' }}>
+              <Printer size={16} /> Imprimir
             </button>
           </div>
         </div>

@@ -13,9 +13,10 @@ import { FeedbackWidget } from './FeedbackWidget';
 
 import { authService } from '../services/authService';
 
-export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
-  const isProPlan = userPlan === 'pro' || userPlan === 'plus';
-  const isPlusPlan = userPlan === 'plus';
+export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isProPlan = userPlan === 'pro' || userPlan === 'plus' || isSuperAdmin;
+  const isPlusPlan = userPlan === 'plus' || isSuperAdmin;
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [queryInput, setQueryInput] = useState('');
@@ -74,7 +75,9 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
 
     // Verificar si el usuario está en Plan Starter (no suscrito) y ya usó su 1 consulta gratuita
-    if (!isProPlan && freeQueryCount >= 1) {
+    // Si el usuario está logueado y es superadmin, no hay límite.
+    const usedQueries = user?.query_count !== undefined ? user.query_count : freeQueryCount;
+    if (!isProPlan && usedQueries >= 1) {
       alert('🔒 Has alcanzado el límite de 1 consulta gratuita de prueba.\n\nPara continuar realizando consultas ilimitadas con la IA y acceder a los beneficios completos, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
       if (onOpenPricing) onOpenPricing('pro');
       return;
@@ -87,22 +90,17 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
     const pInfo = securityService.generatePrivacyBadge();
     setPrivacyInfo(pInfo);
 
-    // Simular actualización dinámica de progreso visual mientras se obtiene el resultado
-    const stepTimer1 = setTimeout(() => setAnalysisStep(2), 600);
-    const stepTimer2 = setTimeout(() => setAnalysisStep(3), 1400);
-
     try {
       const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
-      clearTimeout(stepTimer1);
-      clearTimeout(stepTimer2);
       setActiveResult(result);
 
-      if (result && result.title) {
+      if (result && result.title && user) {
         authService.saveCase(result);
+        authService.incrementQueryCount(); // Asumimos que esta función existe o la crearemos
       }
 
-      // Si es plan gratis, incrementar el contador de uso gratuito
-      if (!isProPlan) {
+      // Si es plan gratis sin login, incrementar el contador de uso gratuito local
+      if (!isProPlan && !user) {
         const newCount = freeQueryCount + 1;
         setFreeQueryCount(newCount);
         localStorage.setItem('leyia_free_queries_used', newCount.toString());
@@ -128,83 +126,6 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
 
   return (
     <main>
-      {/* HERO BANNER ESTILO BALÚ */}
-      <section style={{ textAlign: 'center', margin: '1rem 0 2.5rem' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.4rem 0.95rem',
-          borderRadius: '9999px',
-          background: 'rgba(217, 119, 6, 0.12)',
-          border: '1px solid rgba(217, 119, 6, 0.3)',
-          color: '#f59e0b',
-          fontSize: '0.775rem',
-          fontWeight: 800,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          marginBottom: '1rem'
-        }}>
-          <Cpu size={14} /> INTELIGENCIA JURÍDICA EN TIEMPO REAL — CHILE
-        </div>
-
-        <h1 style={{
-          fontSize: '2.5rem',
-          fontWeight: 900,
-          color: '#fff',
-          letterSpacing: '-0.03em',
-          lineHeight: 1.25,
-          marginBottom: '0.85rem',
-          maxWidth: '900px',
-          margin: '0 auto 0.85rem'
-        }}>
-          Orientación Legal y Documentos Notariales en Lenguaje Natural
-        </h1>
-
-        <p style={{
-          fontSize: '1rem',
-          color: 'var(--text-muted)',
-          maxWidth: '720px',
-          margin: '0 auto 1.5rem',
-          lineHeight: 1.6
-        }}>
-          Consulta cualquier hecho o situación laboral, penal, civil o de arriendo. LeyIA analiza tu caso con <strong>Motor Jurídico IA v3.6</strong> y genera minutas en PDF.
-        </p>
-
-        {/* Banner de descarga de Aplicación APK Nativa para Android (solo en navegador web normal) */}
-
-
-        {/* MÉTREDAS E INDICADORES DE CONFIANZA */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1rem',
-          maxWidth: '850px',
-          margin: '0 auto 2.5rem',
-          padding: '1.25rem',
-          background: 'rgba(15, 23, 42, 0.7)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '0.75rem'
-        }}>
-          <div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-accent)' }}>+18.500</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Consultas Analizadas</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399' }}>99.9%</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Precisión NLU Legal</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#60a5fa' }}>8 Plantillas</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Documentos en PDF</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f43f5e' }}>Ley 19.628</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Anonimización Privada</div>
-          </div>
-        </div>
-      </section>
-
       {/* Selector de Categorías Legales */}
       <div className="categories-wrapper">
         {LEGAL_CATEGORIES.map(cat => (
@@ -321,30 +242,6 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
           </button>
         </div>
       </div>
-
-      {/* Tarjeta de Progreso de Análisis en Vivo (Feedback Inmediato) */}
-      {isAnalyzing && (
-        <div style={{
-          marginTop: '1.5rem',
-          padding: '2rem',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid var(--primary-accent)',
-          borderRadius: '1.25rem',
-          textAlign: 'center',
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.4)'
-        }}>
-          <RefreshCw size={36} color="var(--primary-accent)" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
-          <h3 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-            {analysisStep === 1 && '🔒 Step 1/3: Anonimizando datos según Ley 19.628...'}
-            {analysisStep === 2 && '⚖️ Step 2/3: Consultando Códigos Laboral, Civil, Penal y Leyes Chilenas...'}
-            {analysisStep >= 3 && '⚡ Step 3/3: Sintetizando estrategia y citas de artículos...'}
-          </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-            Motor Legal IA v3.6 procesando la consulta en tiempo real.
-          </p>
-        </div>
-      )}
 
       {/* Escenarios Frecuentes Sugeridos */}
       {!activeResult && !isAnalyzing && (
@@ -481,39 +378,6 @@ export function LegalAssistant({ userPlan, onOpenPricing, onSaveDoc }) {
             isProPlan={isProPlan}
             onOpenPricing={onOpenPricing}
           />
-
-          {/* Estrategia Pro & Banner */}
-          {isProPlan ? (
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%)',
-              border: '1px solid rgba(168, 85, 247, 0.4)',
-              borderRadius: '1.25rem',
-              padding: '1.5rem',
-              marginTop: '2rem'
-            }}>
-              <h4 style={{ fontSize: '1rem', color: '#c084fc', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Sparkles size={18} /> Estrategia de Defensa Legal Exclusiva (Plan Pro)
-              </h4>
-              <p style={{ fontSize: '0.9rem', color: '#e9d5ff', lineHeight: '1.6' }}>
-                {activeResult.proStrategy}
-              </p>
-            </div>
-          ) : (
-            <div className="pro-banner-lock">
-              <div>
-                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginBottom: '0.25rem' }}>
-                  🔒 Desbloquea la Estrategia Jurídica Avanzada y Exportación PDF
-                </h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Actualiza al Plan Pro para ver recomendaciones de defensa avanzada y descargar el dossier para tu abogado.
-                </p>
-              </div>
-
-              <button className="btn-analyze" onClick={onOpenPricing} style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem' }}>
-                Actualizar a Plan Pro
-              </button>
-            </div>
-          )}
 
           {/* Widget de Retroalimentación de Aprendizaje */}
           <FeedbackWidget queryTitle={activeResult.title} />

@@ -12,7 +12,9 @@ import { FaqSection } from './components/FaqSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { SiteFooter } from './components/SiteFooter';
 import { WhatsAppFAB } from './components/WhatsAppFAB';
+import AdminPanel from './components/AdminPanel';
 import { authService } from './services/authService';
+import { analyticsService } from './services/analyticsService';
 
 export function App() {
   const [user, setUser] = useState(null);
@@ -33,11 +35,15 @@ export function App() {
   const consultaRef = useRef(null);
 
   useEffect(() => {
+    // Inicializar Analítica Privacy-First
+    analyticsService.init();
+
     const initSession = async () => {
       const u = await authService.getUserSession();
       if (u) {
         setUser(u);
         setUserPlan(u.plan || 'starter');
+        analyticsService.identifyUser(u.id, u.isSuperUser ? 'superadmin' : 'user', u.plan || 'starter');
       }
       const cases = await authService.getSavedCases();
       setSavedCases(cases);
@@ -51,6 +57,9 @@ export function App() {
   const handleAuthSuccess = async (loggedUser) => {
     setUser(loggedUser);
     setUserPlan(loggedUser.plan || 'starter');
+    analyticsService.identifyUser(loggedUser.id, loggedUser.isSuperUser ? 'superadmin' : 'user', loggedUser.plan || 'starter');
+    analyticsService.trackEvent('User Login', { provider: loggedUser.provider || 'email' });
+    
     const cases = await authService.getSavedCases();
     setSavedCases(cases);
     const docs = await authService.getEmittedDocs();
@@ -59,6 +68,8 @@ export function App() {
 
   const handleLogout = () => {
     authService.logout();
+    analyticsService.trackEvent('User Logout');
+    analyticsService.reset();
     setUser(null);
     setUserPlan('starter');
     setIsDashboardOpen(false);
@@ -104,6 +115,13 @@ export function App() {
         onOpenDashboard={() => setIsDashboardOpen(true)}
       />
 
+      {/* ADMIN PANEL: Visible solo para superusuarios */}
+      {user?.isSuperUser && (
+        <div className="max-w-7xl mx-auto px-4 mt-8">
+          <AdminPanel />
+        </div>
+      )}
+
       {/* ── SECCIÓN 1: HERO LANDING PAGE ── */}
       <HeroSection
         onScrollToConsulta={scrollToConsulta}
@@ -112,18 +130,19 @@ export function App() {
         }}
       />
 
-      {/* ── SECCIÓN 2: ASISTENTE LEGAL IA (Herramienta principal - Cuadro de Chat arriba) ── */}
+      {/* ── SECCIÓN 2: CÓMO FUNCIONA (3 pasos) ── */}
+      <div id="como-funciona">
+        <WorkflowSection />
+      </div>
+
+      {/* ── SECCIÓN 3: ASISTENTE LEGAL IA (Herramienta principal - Cuadro de Chat arriba) ── */}
       <div id="consulta-section" ref={consultaRef} style={{ scrollMarginTop: '2rem' }}>
         <LegalAssistant
+          user={user}
           userPlan={userPlan}
           onOpenPricing={(plan) => handleOpenCheckout(plan || 'plus')}
           onSaveDoc={handleSaveEmittedDoc}
         />
-      </div>
-
-      {/* ── SECCIÓN 3: CÓMO FUNCIONA (3 pasos) ── */}
-      <div id="como-funciona">
-        <WorkflowSection />
       </div>
 
       {/* ── SECCIÓN 4: TESTIMONIOS & SOCIAL PROOF ── */}

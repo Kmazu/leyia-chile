@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Printer, Download, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { SimplePDFDocument } from './PDFGenerator';
 
 export function DocumentFillModal({ isOpen, onClose, documentTemplate, onSaveDoc }) {
   const [formData, setFormData] = useState({
@@ -21,14 +23,34 @@ export function DocumentFillModal({ isOpen, onClose, documentTemplate, onSaveDoc
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePrintDocument = () => {
+  const handleSaveToHistory = () => {
     onSaveDoc({
       title: documentTemplate.title,
       templateId: documentTemplate.id,
       filledData: formData
     });
+  };
+
+  const handlePrintDocument = () => {
+    handleSaveToHistory();
     window.print();
   };
+
+  const pdfContent = `
+En Santiago de Chile, a ${new Date().toLocaleDateString('es-CL')}, comparece don(ña) ${formData.userNombre || '[NOMBRE SOLICITANTE]'}, cédula de identidad y RUT N° ${formData.userRut || '[RUT]'}, domiciliado(a) en ${formData.userDomicilio || '[DOMICILIO]'}, comuna de ${formData.userComuna || '[COMUNA]'}, y expone:
+
+PRIMERO: Que por medio del presente instrumento viene en individualizar la contraparte don(ña) o sociedad ${formData.counterpartNombre || '[NOMBRE CONTRAPARTE]'}, RUT N° ${formData.counterpartRut || '[RUT CONTRAPARTE]'}.
+
+SEGUNDO: Que en relación a la materia de ${documentTemplate.title}, se deja constancia expresamente de los siguientes hechos y fundamentos:
+${formData.hechos || 'Se adjuntan los antecedentes legales vigentes conforme a la normativa de la República de Chile.'}
+
+POR TANTO; Ruego a Ud. tener por presentado este documento y darle el trámite correspondiente.
+
+
+Firma Solicitante: _______________________
+RUT: ${formData.userRut || '___________'}
+  `.trim();
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -207,8 +229,29 @@ export function DocumentFillModal({ isOpen, onClose, documentTemplate, onSaveDoc
               <button onClick={() => setIsPreview(false)} className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
                 Editar Datos
               </button>
-              <button onClick={handlePrintDocument} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-                <Printer size={16} /> Imprimir / Exportar PDF
+              <PDFDownloadLink
+                document={<SimplePDFDocument title={documentTemplate.title} content={pdfContent} />}
+                fileName={`Documento_${documentTemplate.title.replace(/\s+/g, '_')}.pdf`}
+                onClick={handleSaveToHistory}
+                style={{
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                  gap: '0.5rem',
+                  padding: '0.6rem 1.25rem',
+                  fontSize: '0.875rem',
+                  background: 'var(--primary-color)',
+                  color: 'white',
+                  borderRadius: '0.5rem',
+                  fontWeight: 600
+                }}
+              >
+                <Download size={16} /> Descargar PDF Oficial
+              </PDFDownloadLink>
+              <button onClick={handlePrintDocument} className="btn-analyze" style={{ flex: 0.5, justifyContent: 'center', background: 'transparent', border: '1px solid var(--border-color)' }}>
+                <Printer size={16} /> Imprimir
               </button>
             </div>
           </div>
