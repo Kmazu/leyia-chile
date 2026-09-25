@@ -1,99 +1,66 @@
-import React, { useEffect, useRef } from 'react';
-import { Scale, Zap, Shield, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, ArrowRight, ShieldCheck, Scale, Zap } from 'lucide-react';
+import './HeroSection.css';
 
-export function HeroSection({ onScrollToConsulta, onOpenPricing }) {
-  const heroRef = useRef(null);
+export function HeroSection({ onScrollToConsulta, onOpenPricing, onOpenAuth }) {
+  const [query, setQuery] = useState('');
 
-  const scrollToConsulta = () => {
-    if (onScrollToConsulta) {
-      onScrollToConsulta();
-    } else {
-      const el = document.getElementById('consulta-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+  const handleQuerySubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      if (onOpenAuth) onOpenAuth();
     }
   };
 
   return (
-    <section className="hero-section" ref={heroRef} aria-label="Bienvenida a LeyIA Chile">
+    <section className="hero-section" aria-label="Bienvenida a LeyIA Chile">
+      
+      {/* Background Orbs */}
+      <div className="hero-orb orb-1"></div>
+      <div className="hero-orb orb-2"></div>
 
-      {/* Columna izquierda: Texto y CTAs */}
-      <div className="hero-content">
-
+      <div className="hero-content-modern">
+        
         {/* Badge animado */}
-        <div className="hero-badge" role="status">
-          <span className="badge-dot" aria-hidden="true"></span>
-          IA Legal activa — Legislación chilena 2024
+        <div className="hero-badge-modern" role="status">
+          <span className="badge-dot-modern" aria-hidden="true"></span>
+          Inteligencia Artificial Legal — Chile 2024
         </div>
 
-        {/* Título principal */}
-        <h1 className="hero-title">
-          Tu Abogado Virtual{' '}
-          <span className="hero-title-accent">Disponible 24/7</span>
+        {/* Título principal gigante */}
+        <h1 className="hero-title-modern">
+          Resuelve tu problema legal<br />
+          <span className="hero-gradient-text">conversando con IA.</span>
         </h1>
 
         {/* Subtítulo */}
-        <p className="hero-subtitle">
-          Analiza tu situación legal en segundos. Sin tecnicismos. Sin esperar.
-          Basado en <strong>Código Civil, Penal, Laboral y Ley de Arriendos</strong> de Chile.
+        <p className="hero-subtitle-modern">
+          El primer agente de Inteligencia Artificial especializado en legislación chilena. Redacta documentos, analiza casos y resuelve dudas en segundos.
         </p>
 
-        {/* Stats */}
-        <div className="hero-stats" aria-label="Estadísticas del servicio">
-          <div className="stat-item">
-            <span className="stat-number">+12.400</span>
-            <span className="stat-label">Consultas resueltas</span>
-          </div>
-          <div className="stat-divider" aria-hidden="true"></div>
-          <div className="stat-item">
-            <span className="stat-number">4.8 ⭐</span>
-            <span className="stat-label">Calificación usuarios</span>
-          </div>
-          <div className="stat-divider" aria-hidden="true"></div>
-          <div className="stat-item">
-            <span className="stat-number">&lt;30 seg</span>
-            <span className="stat-label">Tiempo de análisis</span>
-          </div>
+        {/* Input gigante de Juztina style */}
+        <form onSubmit={handleQuerySubmit} className="hero-search-box">
+          <input 
+            type="text" 
+            placeholder="Escribe tu caso legal o duda aquí..." 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="hero-search-input"
+          />
+          <button type="submit" className="hero-search-button">
+            <Sparkles size={18} />
+            Consultar
+          </button>
+        </form>
+
+        {/* CTAs Secundarios */}
+        <div className="hero-trust-modern">
+          <span><ShieldCheck size={14} className="text-emerald-400" /> Privacidad Garantizada</span>
+          <span><Scale size={14} className="text-blue-400" /> Código Civil, Penal y Laboral</span>
+          <span><Zap size={14} className="text-purple-400" /> Respuestas en 10 seg</span>
         </div>
 
-        {/* CTAs */}
-        <div className="hero-cta-group">
-          <button
-            className="btn-hero-primary"
-            onClick={scrollToConsulta}
-            id="hero-cta-primary"
-            aria-label="Ir a la herramienta de consulta legal gratuita"
-          >
-            <Zap size={18} aria-hidden="true" />
-            Consultar Gratis Ahora
-          </button>
-          <button
-            className="btn-hero-secondary"
-            onClick={() => onOpenPricing && onOpenPricing('pro')}
-            id="hero-cta-pricing"
-            aria-label="Ver planes y precios"
-          >
-            Ver Planes →
-          </button>
-        </div>
-
-        {/* Trust badges */}
-        <div className="hero-trust" aria-label="Garantías del servicio">
-          <span><Shield size={13} aria-hidden="true" /> Datos cifrados</span>
-          <span>🇨🇱 Ley chilena vigente</span>
-          <span>✓ Sin tarjeta para empezar</span>
-        </div>
       </div>
-
-
-
-      {/* Flecha scroll down */}
-      <button
-        className="hero-scroll-hint"
-        onClick={scrollToConsulta}
-        aria-label="Desplazarse hacia abajo"
-      >
-        <ChevronDown size={22} />
-      </button>
     </section>
   );
 }

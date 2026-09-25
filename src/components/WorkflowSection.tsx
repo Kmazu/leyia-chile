@@ -30,9 +30,9 @@ export function WorkflowSection() {
           display: 'inline-flex',
           padding: '0.35rem 0.85rem',
           borderRadius: '0.375rem',
-          background: 'rgba(217, 119, 6, 0.15)',
-          color: '#f59e0b',
-          border: '1px solid rgba(217, 119, 6, 0.3)',
+          background: 'rgba(168, 85, 247, 0.15)',
+          color: '#c084fc',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
           fontSize: '0.75rem',
           fontWeight: 800,
           letterSpacing: '0.05em',
@@ -54,11 +54,12 @@ export function WorkflowSection() {
           <div
             key={idx}
             style={{
-              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '0.75rem',
+              background: 'rgba(18, 18, 20, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '1rem',
               padding: '1.75rem',
-              position: 'relative'
+              position: 'relative',
+              backdropFilter: 'blur(20px)'
             }}
           >
             <div style={{

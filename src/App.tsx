@@ -114,8 +114,8 @@ export function App() {
     );
   }
 
-  // Si no hay usuario, forzamos la apertura del modal y evitamos que lo cierre
-  const authGateOpen = !user || isAuthOpen;
+  // Permitir que la página de inicio sea pública, el authModal se abrirá al clickear "Consultar"
+  const authGateOpen = isAuthOpen;
 
   return (
     <div className="app-container">
@@ -144,6 +144,7 @@ export function App() {
         onOpenPricing={(plan) => {
           handleOpenCheckout(plan || 'pro');
         }}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* ── SECCIÓN 2: CÓMO FUNCIONA (3 pasos) ── */}
@@ -190,9 +191,7 @@ export function App() {
 
       <AuthModal
         isOpen={authGateOpen}
-        onClose={() => {
-          if (user) setIsAuthOpen(false);
-        }}
+        onClose={() => setIsAuthOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
 

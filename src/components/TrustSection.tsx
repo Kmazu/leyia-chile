@@ -32,9 +32,9 @@ export function TrustSection() {
           display: 'inline-flex',
           padding: '0.35rem 0.85rem',
           borderRadius: '0.375rem',
-          background: 'rgba(5, 150, 105, 0.15)',
-          color: '#34d399',
-          border: '1px solid rgba(5, 150, 105, 0.3)',
+          background: 'rgba(99, 102, 241, 0.15)',
+          color: '#818cf8',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
           fontSize: '0.75rem',
           fontWeight: 800,
           letterSpacing: '0.05em',
@@ -59,15 +59,16 @@ export function TrustSection() {
             target="_blank"
             rel="noreferrer"
             style={{
-              background: 'rgba(15, 23, 42, 0.7)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '0.6rem',
+              background: 'rgba(18, 18, 20, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '1rem',
               padding: '1.25rem',
               textDecoration: 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              backdropFilter: 'blur(20px)'
             }}
             className="trust-card"
           >
