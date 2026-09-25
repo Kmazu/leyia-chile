@@ -89,6 +89,8 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onOpenAuth, onSa
     const pInfo = securityService.generatePrivacyBadge();
     setPrivacyInfo(pInfo);
 
+    try {
+
       // Enviar texto anonimizado (si corresponde) para proteger la privacidad
       const finalQueryText = (anonymizedStatus && anonymizedStatus.anonymizedCount > 0)
         ? anonymizedStatus.anonymizedText
