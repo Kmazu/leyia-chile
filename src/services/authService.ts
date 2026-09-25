@@ -179,25 +179,8 @@ export const authService = {
   },
 
   async incrementQueryCount() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('query_count')
-        .eq('id', user.id)
-        .single();
-        
-      if (error) throw error;
-
-      await supabase
-        .from('profiles')
-        .update({ query_count: (data.query_count || 0) + 1 })
-        .eq('id', user.id);
-    } catch (e) {
-      console.error('Error incrementing query count:', e);
-    }
+    // Obsoleto: El conteo de queries ahora se incrementa de manera segura
+    // en el backend (/api/analyze.js) utilizando el rol de servicio.
   },
 
   // ── 3. GESTIÓN DE EXPEDIENTES JURÍDICOS (CARPETAS / CAUSAS) ──

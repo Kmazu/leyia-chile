@@ -142,6 +142,11 @@ ${contextToUse}`;
       endpoint: '/api/analyze'
     }]);
 
+    // Incrementar query_count del usuario
+    await supabaseAdmin.from('profiles')
+      .update({ query_count: queryCount + 1 })
+      .eq('id', user.id);
+
     return res.status(200).json({
       status: 'success',
       engine: provider,

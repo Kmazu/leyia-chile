@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShoppingCart, ShieldCheck, ArrowRight, Loader2, CheckCircle2, Sparkles, Lock, CreditCard } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { authService } from '../services/authService';
 
 export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess, user }) {
   const [emailInput, setEmailInput] = useState(user?.email || '');
@@ -19,9 +20,13 @@ export function CheckoutModal({ isOpen, onClose, targetPlan, onUpgradeSuccess, u
     setErrorMessage('');
 
     try {
+      const token = await authService.getSessionToken();
       const response = await fetch('/api/flow-create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           plan: targetPlan,
           userEmail: emailInput.trim() || 'cliente@leyia.cl',

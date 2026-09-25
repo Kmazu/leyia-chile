@@ -1,12 +1,39 @@
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ status: 'error', message: 'Método no permitido' });
   }
 
+  // Validación de Autenticación JWT
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ status: 'error', message: 'No autorizado. Se requiere token JWT.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ status: 'error', message: 'Configuración de Supabase faltante en servidor.' });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) {
+    return res.status(401).json({ status: 'error', message: 'Token inválido o expirado.' });
+  }
+
   try {
     const { plan, userEmail, returnUrlOrigin } = req.body || {};
+
+    if (plan !== 'pro' && plan !== 'plus') {
+      return res.status(400).json({ status: 'error', message: 'Plan inválido' });
+    }
+
 
     const amountMap = {
       pro: 5990,
@@ -28,7 +55,7 @@ export default async function handler(req, res) {
     }
 
     const baseUrl = returnUrlOrigin || 'https://leyia-chile.vercel.app';
-    const commerceOrder = `LEYIA-${Date.now()}`;
+    const commerceOrder = `${plan}_${user.id}_${Date.now()}`;
     const emailToUse = (userEmail && userEmail.includes('@') && !userEmail.endsWith('@leyia.cl')) ? userEmail : 'cliente@gmail.com';
 
     const params = {
