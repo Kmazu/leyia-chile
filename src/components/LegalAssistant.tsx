@@ -75,7 +75,7 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onOpenAuth, onSa
 
     // Verificar si el usuario alcanzó el límite de su plan. Las validaciones ocurren también en backend.
     const queryCount = user.query_count || 0;
-    const limit = userPlan === 'starter' ? 5 : (userPlan === 'pro' ? 50 : 500);
+    const limit = userPlan === 'starter' ? 2 : (userPlan === 'pro' ? 50 : 500);
     if (!isSuperAdmin && queryCount >= limit) {
       alert(`🔒 Has alcanzado el límite de ${limit} consultas de tu plan actual.\n\nPara continuar realizando consultas con la IA, suscríbete o mejora tu plan.`);
       if (onOpenPricing) onOpenPricing(userPlan === 'starter' ? 'pro' : 'plus');

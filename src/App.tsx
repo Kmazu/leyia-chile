@@ -19,6 +19,7 @@ import { analyticsService } from './services/analyticsService';
 export function App() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState('starter'); // Starter plan is the default
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Modales
   const [isPricingOpen, setIsPricingOpen] = useState(false);
@@ -39,16 +40,20 @@ export function App() {
     analyticsService.init();
 
     const initSession = async () => {
-      const u = await authService.getUserSession();
-      if (u) {
-        setUser(u);
-        setUserPlan(u.plan || 'starter');
-        analyticsService.identifyUser(u.id, u.isSuperUser ? 'superadmin' : 'user', u.plan || 'starter');
+      try {
+        const u = await authService.getUserSession();
+        if (u) {
+          setUser(u);
+          setUserPlan(u.plan || 'starter');
+          analyticsService.identifyUser(u.id, u.isSuperUser ? 'superadmin' : 'user', u.plan || 'starter');
+        }
+        const cases = await authService.getSavedCases();
+        setSavedCases(cases);
+        const docs = await authService.getEmittedDocs();
+        setEmittedDocs(docs);
+      } finally {
+        setIsInitializing(false);
       }
-      const cases = await authService.getSavedCases();
-      setSavedCases(cases);
-      const docs = await authService.getEmittedDocs();
-      setEmittedDocs(docs);
     };
 
     initSession();
@@ -100,6 +105,17 @@ export function App() {
       consultaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  if (isInitializing) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: '#fff' }}>
+        <h2>Cargando LeyIA Chile...</h2>
+      </div>
+    );
+  }
+
+  // Si no hay usuario, forzamos la apertura del modal y evitamos que lo cierre
+  const authGateOpen = !user || isAuthOpen;
 
   return (
     <div className="app-container">
@@ -173,8 +189,10 @@ export function App() {
       />
 
       <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
+        isOpen={authGateOpen}
+        onClose={() => {
+          if (user) setIsAuthOpen(false);
+        }}
         onAuthSuccess={handleAuthSuccess}
       />
 

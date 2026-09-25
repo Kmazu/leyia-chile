@@ -66,6 +66,33 @@ export default async function handler(req, res) {
     }
   }
 
+  // Límite estricto por IP al mes para evitar granjas de correos falsos (abusos) en cuentas gratuitas
+  if (ip !== 'unknown') {
+    const supabaseAdminIp = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    
+    // Contamos todos los usos de esta IP en el mes actual (independiente del usuario registrado)
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    
+    // Obtenemos el perfil del usuario para saber si es starter
+    const { data: currentProfile } = await supabaseAdminIp.from('profiles').select('plan, role').eq('id', user.id).single();
+    
+    if (currentProfile && currentProfile.plan === 'starter' && currentProfile.role !== 'superadmin') {
+      const { count: ipCount, error: ipError } = await supabaseAdminIp
+        .from('ai_usage')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth)
+        .eq('metadata->>ip_address', ip);
+
+      if (!ipError && ipCount >= 2) {
+        console.warn(`Límite mensual por IP superado para ${ip}. Consultas: ${ipCount}`);
+        return res.status(403).json({
+          error: 'Límite IP alcanzado',
+          message: 'Has superado el límite gratuito de 2 consultas mensuales asignadas a tu red/conexión de internet. Por favor, mejora a un plan de pago para continuar.'
+        });
+      }
+    }
+  }
+
   // Verificación de Plan (Límites) en Backend
   // Utilizamos service_role para operaciones administrativas si fuera necesario, pero aquí basta leer de profiles
   const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -73,7 +100,7 @@ export default async function handler(req, res) {
   
   const plan = profile?.plan || 'starter';
   const queryCount = profile?.query_count || 0;
-  const monthlyLimit = plan === 'starter' ? 5 : (plan === 'pro' ? 50 : 500);
+  const monthlyLimit = plan === 'starter' ? 2 : (plan === 'pro' ? 50 : 500);
 
   if (queryCount >= monthlyLimit) {
     return res.status(403).json({ 
