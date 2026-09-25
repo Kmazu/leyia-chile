@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { query, category, legalContext } = req.body || {};
+  const { query, category } = req.body || {};
 
   if (!query || typeof query !== 'string' || query.trim().length === 0) {
     return res.status(400).json({ error: 'La consulta no puede estar vacía' });
@@ -91,14 +91,53 @@ export default async function handler(req, res) {
   const sanitizedQuery = query.trim().slice(0, 2000);
   const provider = process.env.AI_PROVIDER || 'gemini';
 
-  const defaultMockContext = `--- CONTEXTO LEGAL (RAG MOCK) ---
+  // 1. Obtener Embedding de Gemini para búsqueda RAG
+  let contextToUse = '';
+  try {
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (geminiApiKey) {
+      const embedRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'models/gemini-embedding-001',
+          content: { parts: [{ text: sanitizedQuery }] },
+          outputDimensionality: 768
+        })
+      });
+
+      if (embedRes.ok) {
+        const embedData = await embedRes.json();
+        const embedding = embedData.embedding?.values;
+        if (embedding) {
+          // 2. Buscar similitud en Supabase
+          const { data: legalSources } = await supabaseAdmin.rpc('match_legal_sources', {
+            query_embedding: embedding,
+            match_threshold: 0.65,
+            match_count: 5,
+            filter_category: category === 'all' ? null : category
+          });
+          
+          if (legalSources && legalSources.length > 0) {
+            contextToUse = "--- CONTEXTO LEGAL (RAG) ---\n" + legalSources.map(s => 
+              `Categoría: ${s.category}\nCita: ${s.title}\nContenido: ${s.content}`
+            ).join('\n\n') + "\n---------------------------------";
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error obteniendo contexto RAG:', e);
+  }
+
+  if (!contextToUse) {
+    contextToUse = `--- CONTEXTO LEGAL (RAG MOCK) ---
 Sección: Código del Trabajo (Art. 159, 160, 161) - Causales de terminación de contrato, despido injustificado, necesidades de la empresa.
 Sección: Ley del Consumidor 19.496 - Derecho a garantía legal (6 meses), derecho a retracto.
 Sección: Código Civil - Contratos de arrendamiento, Ley 21.461 (Devuélveme mi casa), indemnización de perjuicios.
 Sección: Código Penal - Delitos contra la propiedad (Robo, Hurto), lesiones, amenazas.
 ---------------------------------`;
-
-  const contextToUse = legalContext || defaultMockContext;
+  }
 
   const systemPrompt = `Eres "LeyIA Chile", un jurista técnico especializado en el ordenamiento jurídico de la República de Chile (Código Penal, Civil, del Trabajo, Ley de Tránsito 18.290, Ley 21.461 Arriendos, Ley 19.496 SERNAC, Ley 21.389 Alimentos, Código Procesal Penal, etc.).
 
@@ -130,7 +169,7 @@ ${contextToUse}`;
     }
     const durationMs = Date.now() - startTime;
 
-    // Registrar consumo
+    // Registrar consumo e IP
     await supabaseAdmin.from('ai_usage').insert([{
       user_id: user.id,
       request_id: requestId,
@@ -139,13 +178,12 @@ ${contextToUse}`;
       completion_tokens: aiResponse.usage.completion_tokens,
       total_tokens: aiResponse.usage.total_tokens,
       duration_ms: durationMs,
-      endpoint: '/api/analyze'
+      endpoint: '/api/analyze',
+      metadata: { ip_address: ip }
     }]);
 
-    // Incrementar query_count del usuario
-    await supabaseAdmin.from('profiles')
-      .update({ query_count: queryCount + 1 })
-      .eq('id', user.id);
+    // Incrementar query_count atómicamente usando RPC
+    await supabaseAdmin.rpc('increment_query_count', { user_id: user.id });
 
     return res.status(200).json({
       status: 'success',

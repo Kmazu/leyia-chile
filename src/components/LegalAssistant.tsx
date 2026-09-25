@@ -13,7 +13,7 @@ import { FeedbackWidget } from './FeedbackWidget';
 
 import { authService } from '../services/authService';
 
-export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
+export function LegalAssistant({ user, userPlan, onOpenPricing, onOpenAuth, onSaveDoc }) {
   const isSuperAdmin = user?.role === 'superadmin';
   const isProPlan = userPlan === 'pro' || userPlan === 'plus' || isSuperAdmin;
   const isPlusPlan = userPlan === 'plus' || isSuperAdmin;
@@ -59,14 +59,7 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
     }
   };
 
-  // Contador de consultas realizadas en la sesión para usuarios del Plan Starter (Límite: 1 consulta)
-  const [freeQueryCount, setFreeQueryCount] = useState(() => {
-    try {
-      return parseInt(localStorage.getItem('leyia_free_queries_used') || '0', 10);
-    } catch (e) {
-      return 0;
-    }
-  });
+  // Removed freeQueryCount as we now require registration
 
   const [analysisStep, setAnalysisStep] = useState(0);
 
@@ -74,12 +67,18 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
   const handleRunAnalysis = async (textToAnalyze = queryInput) => {
     if (!textToAnalyze || textToAnalyze.trim().length === 0) return;
 
-    // Verificar si el usuario está en Plan Starter (no suscrito) y ya usó su 1 consulta gratuita
-    // Si el usuario está logueado y es superadmin, no hay límite.
-    const usedQueries = user?.query_count !== undefined ? user.query_count : freeQueryCount;
-    if (!isProPlan && usedQueries >= 1) {
-      alert('🔒 Has alcanzado el límite de 1 consulta gratuita de prueba.\n\nPara continuar realizando consultas ilimitadas con la IA y acceder a los beneficios completos, suscríbete al Plan Legal Pro ($5.990) o Plus ($9.990).');
-      if (onOpenPricing) onOpenPricing('pro');
+    // Requerir registro obligatorio para realizar cualquier consulta
+    if (!user) {
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+
+    // Verificar si el usuario alcanzó el límite de su plan. Las validaciones ocurren también en backend.
+    const queryCount = user.query_count || 0;
+    const limit = userPlan === 'starter' ? 5 : (userPlan === 'pro' ? 50 : 500);
+    if (!isSuperAdmin && queryCount >= limit) {
+      alert(`🔒 Has alcanzado el límite de ${limit} consultas de tu plan actual.\n\nPara continuar realizando consultas con la IA, suscríbete o mejora tu plan.`);
+      if (onOpenPricing) onOpenPricing(userPlan === 'starter' ? 'pro' : 'plus');
       return;
     }
 
@@ -90,20 +89,16 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
     const pInfo = securityService.generatePrivacyBadge();
     setPrivacyInfo(pInfo);
 
-    try {
-      const result = await aiService.processLegalQuery(textToAnalyze, selectedCategory);
+      // Enviar texto anonimizado (si corresponde) para proteger la privacidad
+      const finalQueryText = (anonymizedStatus && anonymizedStatus.anonymizedCount > 0)
+        ? anonymizedStatus.anonymizedText
+        : textToAnalyze;
+
+      const result = await aiService.processLegalQuery(finalQueryText, selectedCategory);
       setActiveResult(result);
 
       if (result && result.title && user) {
-        await authService.saveCase(result);
-        await authService.incrementQueryCount();
-      }
-
-      // Si es plan gratis sin login, incrementar el contador de uso gratuito local
-      if (!isProPlan && !user) {
-        const newCount = freeQueryCount + 1;
-        setFreeQueryCount(newCount);
-        localStorage.setItem('leyia_free_queries_used', newCount.toString());
+        await authService.saveCase({ ...result, query: finalQueryText, category: selectedCategory });
       }
     } catch (err) {
       console.error('Error en ejecución de análisis:', err);
@@ -152,42 +147,6 @@ export function LegalAssistant({ user, userPlan, onOpenPricing, onSaveDoc }) {
           </div>
         </div>
 
-        {!isProPlan && (
-          <div style={{
-            marginBottom: '0.85rem',
-            padding: '0.5rem 0.85rem',
-            borderRadius: '0.5rem',
-            background: freeQueryCount >= 1 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-            border: freeQueryCount >= 1 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
-            fontSize: '0.8rem',
-            color: freeQueryCount >= 1 ? '#f87171' : '#f59e0b',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '0.5rem'
-          }}>
-            <span>
-              {freeQueryCount >= 1 
-                ? '🔒 Has alcanzado el límite de 1 consulta gratis de tu Plan Starter.' 
-                : '🎁 Tienes 1 Consulta Legal Gratuita en tu Plan Starter.'}
-            </span>
-            <button
-              onClick={() => onOpenPricing && onOpenPricing('pro')}
-              style={{
-                background: 'var(--primary-accent)',
-                color: '#000',
-                border: 'none',
-                padding: '0.25rem 0.65rem',
-                borderRadius: '0.375rem',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
-            >
-              Ver Planes Ilimitados
-            </button>
-          </div>
-        )}
 
         <textarea
           className="query-input-box"

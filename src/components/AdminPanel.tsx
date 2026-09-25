@@ -16,7 +16,7 @@ export default function AdminPanel() {
     setError(null);
     setResult(null);
 
-    const currentUser = authService.getCurrentUser();
+    const currentUser = await authService.getUserSession();
     if (!currentUser || !currentUser.email) {
       setError('Debes iniciar sesión como superusuario');
       setLoading(false);

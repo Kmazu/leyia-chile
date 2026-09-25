@@ -193,6 +193,7 @@
   },
   "active": "eec46aac733e15b1",
   "lastOpenFiles": [
+    "supabase/migrations/20260925000002_increment_query_count_rpc.sql",
     "Sin título 1.canvas",
     "Sin título.canvas"
   ]

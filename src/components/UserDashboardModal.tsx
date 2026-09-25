@@ -503,16 +503,16 @@ export function UserDashboardModal({ isOpen, onClose, user, onLogout, onOpenPric
                     alignItems: 'center'
                   }}>
                     <div>
-                      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>{doc.title}</div>
+                      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>{doc.docName}</div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.25rem' }}>
-                        <span style={{ background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.4rem', borderRadius: '0.25rem' }}>{doc.file_type || 'PDF'}</span>
+                        <span style={{ background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.4rem', borderRadius: '0.25rem' }}>{doc.docType || 'PDF'}</span>
                         <Clock size={12} /> {new Date(doc.created_at).toLocaleString('es-CL')}
                       </div>
                     </div>
                     <button 
                       onClick={async () => {
                         try {
-                          const url = await documentService.getSignedUrl(doc.file_path);
+                          const url = await documentService.getSignedUrl(doc.storagePath);
                           await documentService.logDownload(doc.id);
                           window.open(url, '_blank');
                         } catch (err) {

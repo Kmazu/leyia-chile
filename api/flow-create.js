@@ -28,7 +28,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { plan, userEmail, returnUrlOrigin } = req.body || {};
+    const { plan, userEmail } = req.body || {};
+    const returnUrlOrigin = process.env.NEXT_PUBLIC_SITE_URL || 'https://leyia-chile.vercel.app';
 
     if (plan !== 'pro' && plan !== 'plus') {
       return res.status(400).json({ status: 'error', message: 'Plan inválido' });

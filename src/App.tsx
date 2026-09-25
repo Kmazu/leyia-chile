@@ -18,7 +18,7 @@ import { analyticsService } from './services/analyticsService';
 
 export function App() {
   const [user, setUser] = useState(null);
-  const [userPlan, setUserPlan] = useState('pro'); // Unlimited queries enabled for LeyIA Chile
+  const [userPlan, setUserPlan] = useState('starter'); // Starter plan is the default
 
   // Modales
   const [isPricingOpen, setIsPricingOpen] = useState(false);
@@ -141,6 +141,7 @@ export function App() {
           user={user}
           userPlan={userPlan}
           onOpenPricing={(plan) => handleOpenCheckout(plan || 'plus')}
+          onOpenAuth={() => setIsAuthOpen(true)}
           onSaveDoc={handleSaveEmittedDoc}
         />
       </div>

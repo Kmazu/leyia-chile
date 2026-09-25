@@ -24,7 +24,9 @@ export default async function handler(req, res) {
                             .digest('hex');
     
     // Call Flow API
-    const response = await fetch(`https://www.flow.cl/api/payment/getStatus?apiKey=${apiKey}&token=${token}&s=${signature}`);
+    const flowEnv = process.env.FLOW_ENVIRONMENT || 'production';
+    const flowBaseUrl = flowEnv === 'sandbox' ? 'https://sandbox.flow.cl/api' : 'https://www.flow.cl/api';
+    const response = await fetch(`${flowBaseUrl}/payment/getStatus?apiKey=${apiKey}&token=${token}&s=${signature}`);
     const data = await response.json();
     
     if (data.status === 2) {
